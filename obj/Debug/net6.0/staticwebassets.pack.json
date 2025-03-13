@@ -1,6 +1,10 @@
 {
   "Files": [
     {
+      "Id": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\images\\default-profile.png",
+      "PackagePath": "staticwebassets\\images\\default-profile.png"
+    },
+    {
       "Id": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
     },
@@ -19,6 +23,10 @@
     {
       "Id": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\student-dashboard.html",
       "PackagePath": "staticwebassets\\student-dashboard.html"
+    },
+    {
+      "Id": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\test-profilepic.html",
+      "PackagePath": "staticwebassets\\test-profilepic.html"
     },
     {
       "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.StudentTracker.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",

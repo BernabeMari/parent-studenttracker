@@ -95,6 +95,7 @@ namespace StudentTracker.Controllers
                         student.Username,
                         student.Email,
                         student.Fullname,
+                        student.ProfilePic,
                         UserType = "Student"
                     }
                 });

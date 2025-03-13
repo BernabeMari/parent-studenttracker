@@ -246,6 +246,17 @@
             animation: bounce 1s ease infinite alternate;
         }
         
+        .marker-profile-pic {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            object-fit: cover;
+            transform-origin: bottom center;
+            animation: bounce 1s ease infinite alternate;
+        }
+        
         @keyframes bounce {
             from { transform: translateY(0); }
             to { transform: translateY(-10px); }
@@ -297,6 +308,115 @@
                 padding: 15px;
             }
         }
+        
+        /* Profile Picture Styles */
+        .profile-pic-container {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            overflow: hidden;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-pic-lg {
+            position: relative;
+            width: 128px;
+            height: 128px;
+            overflow: hidden;
+            border-radius: 50%;
+            border: 3px solid var(--primary-color);
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+        }
+        
+        .profile-pic-lg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        #profile-pic-input {
+            display: none;
+        }
+        
+        .profile-pic-preview {
+            display: none;
+            margin: 1rem auto;
+            width: 128px;
+            height: 128px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--success-color);
+            z-index: 2000; /* Ensure this is higher than modal backdrop */
+            position: relative; /* Ensure proper positioning */
+        }
+        
+        .profile-pic-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Added style to make drop overlay properly visible */
+        #drop-overlay {
+            display: flex; /* Make sure the flex display is active */
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.3s ease;
+        }
+        
+        .drop-zone:hover #drop-overlay {
+            opacity: 0.8; /* Show on hover */
+        }
+        
+        .img-upload-label {
+            position: absolute;
+            right: 5px;
+            bottom: 5px;
+            background-color: var(--success-color);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+        
+        /* Drag and Drop styles */
+        .drop-zone {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        
+        .drop-zone:hover {
+            transform: scale(1.02);
+        }
+        
+        .drop-zone.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(56, 161, 105, 0.7);
+        }
+        
+        .drag-pulse {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -308,11 +428,16 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <span class="nav-link" id="username-display"></span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" id="logout-btn">Logout</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="/images/default-profile.png" alt="Profile" class="profile-pic-sm me-2" id="nav-profile-pic">
+                            <span id="nav-username">Student</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="/test-profilepic.html"><i class="bi bi-person-circle me-2"></i>Edit Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
@@ -472,7 +597,7 @@
                         // Create custom icon for marker
                         const customIcon = L.divIcon({
                             className: 'custom-map-marker',
-                            html: `<div class="marker-icon"><i class="bi bi-geo-alt-fill"></i></div>`,
+                            html: `<div class="marker-icon"><img src="${user.profilePic || '/images/default-profile.png'}" class="marker-profile-pic" alt="Profile"></div>`,
                             iconSize: [40, 40],
                             iconAnchor: [20, 40],
                             popupAnchor: [0, -40]
@@ -774,6 +899,456 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login.html';
+        });
+        
+        // Profile Picture Handling
+        console.log('DEBUG: Starting profile pic setup script');
+
+        // Get the DOM elements we need
+        const navProfilePic = document.querySelector('.profile-pic-sm') || document.querySelector('#nav-profile-pic');
+        const profilePicModal = document.getElementById('profilePicModal');
+        const profilePicInput = document.getElementById('profile-pic-input');
+        const currentProfilePic = document.getElementById('current-profile-pic');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImage = document.getElementById('preview-image');
+        const uploadBtn = document.getElementById('upload-profile-pic');
+        const uploadMessage = document.getElementById('upload-message');
+        const dropZone = document.getElementById('current-profile-container');
+        const dropOverlay = document.getElementById('drop-overlay');
+
+        // Debug check
+        console.log('DEBUG: Nav Profile Pic:', navProfilePic ? 'Found' : 'Not found');
+        console.log('DEBUG: Modal:', profilePicModal ? 'Found' : 'Not found');
+        console.log('DEBUG: Profile Pic Input:', profilePicInput ? 'Found' : 'Not found');
+        console.log('DEBUG: Current Profile Pic:', currentProfilePic ? 'Found' : 'Not found');
+        console.log('DEBUG: Preview Container:', previewContainer ? 'Found' : 'Not found');
+        console.log('DEBUG: Preview Image:', previewImage ? 'Found' : 'Not found');
+        console.log('DEBUG: Upload Button:', uploadBtn ? 'Found' : 'Not found');
+        console.log('DEBUG: Upload Message:', uploadMessage ? 'Found' : 'Not found');
+        console.log('DEBUG: Drop Zone:', dropZone ? 'Found' : 'Not found');
+        console.log('DEBUG: Drop Overlay:', dropOverlay ? 'Found' : 'Not found');
+
+        // Display username in navbar
+        const navUsername = document.getElementById('nav-username');
+        navUsername.textContent = user.fullname || user.username;
+        
+        // Monitor any form submission attempts
+        document.addEventListener('submit', function(e) {
+            console.log("DEBUG: Form submission detected for", e.target.id || "unknown form");
+            // Prevent any form submissions in the modal
+            if (e.target.closest('#profilePicModal')) {
+                console.log("DEBUG: Form submission inside profile pic modal caught");
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+        
+        // Load profile pic on page load
+        if (user.profilePic) {
+            console.log("DEBUG: User has profile pic");
+            navProfilePic.src = user.profilePic;
+            currentProfilePic.src = user.profilePic;
+        } else {
+            console.log("DEBUG: User has no profile pic, using default");
+            navProfilePic.src = '/images/default-profile.png';
+            currentProfilePic.src = '/images/default-profile.png';
+            
+            // Try to get profile pic from server if none in localStorage
+            getProfilePicFromServer();
+        }
+        
+        // Function to get profile pic from server (using test-profilepic.html approach)
+        function getProfilePicFromServer() {
+            console.log('DEBUG: Calling getProfilePicFromServer()');
+            try {
+                console.log('DEBUG: Attempting to fetch profile pic from server');
+                
+                // Use the API endpoint
+                fetch('/api/student/profilepic', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    console.log(`DEBUG: Profile pic fetch response status: ${response.status}`);
+                    if (response.ok) {
+                        // Check Content-Type
+                        const contentType = response.headers.get('Content-Type');
+                        console.log(`DEBUG: Response content type: ${contentType}`);
+                        
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json().then(data => {
+                                console.log('DEBUG: Received JSON response for profile pic');
+                                return { type: 'json', data };
+                            });
+                        } else {
+                            return response.blob().then(blob => {
+                                console.log(`DEBUG: Received blob response for profile pic, type: ${blob.type}, size: ${blob.size}`);
+                                return { type: 'blob', data: blob };
+                            });
+                        }
+                    }
+                    throw new Error(`Failed to fetch profile pic: ${response.status}`);
+                })
+                .then(result => {
+                    if (result.type === 'json' && result.data.profilePicUrl) {
+                        console.log('DEBUG: Setting profile pic from JSON response URL');
+                        
+                        // Update all profile picture elements
+                        if (navProfilePic) navProfilePic.src = result.data.profilePicUrl;
+                        if (currentProfilePic) currentProfilePic.src = result.data.profilePicUrl;
+                        
+                        // Update local storage
+                        if (user) {
+                            user.profilePic = result.data.profilePicUrl;
+                            localStorage.setItem('user', JSON.stringify(user));
+                        }
+                    } else if (result.type === 'blob') {
+                        console.log('DEBUG: Setting profile pic from blob response');
+                        const url = URL.createObjectURL(result.data);
+                        
+                        // Update all profile picture elements
+                        if (navProfilePic) navProfilePic.src = url;
+                        if (currentProfilePic) currentProfilePic.src = url;
+                    }
+                })
+                .catch(error => {
+                    console.error('DEBUG: Error getting profile pic:', error);
+                });
+            } catch (err) {
+                console.error('DEBUG: Exception in getProfilePicFromServer:', err);
+            }
+        }
+        
+        // Drag and Drop Functionality
+        if (dropZone) {
+            // Fixed overlay styling issue
+            dropOverlay.style.display = 'flex';
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            // Highlight drop zone when dragging over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                console.log('DEBUG: File being dragged over drop zone');
+                dropOverlay.style.opacity = '1';
+                dropZone.classList.add('active');
+                dropZone.classList.add('drag-pulse');
+            }
+            
+            function unhighlight() {
+                console.log('DEBUG: File drag ended or file dropped');
+                dropOverlay.style.opacity = '0';
+                dropZone.classList.remove('active');
+                dropZone.classList.remove('drag-pulse');
+            }
+            
+            // Handle dropped files
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                console.log('DEBUG: File dropped');
+                
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length) {
+                    console.log(`DEBUG: Dropped ${files.length} files`);
+                    handleFiles(files);
+                }
+            }
+            
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    const file = files[0]; // Get only the first file
+                    console.log(`DEBUG: Handling dropped file: ${file.name}`);
+                    
+                    // Set the file in the file input
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    profilePicInput.files = dataTransfer.files;
+                    
+                    // Trigger change event to use the same processing logic
+                    const changeEvent = new Event('change', { bubbles: true });
+                    
+                    // Additional logging before dispatching event
+                    console.log("DEBUG: About to dispatch change event to show preview");
+                    
+                    // Set a flag to prevent auto upload in case something's triggering it
+                    window.preventAutoUpload = true;
+                    
+                    // Dispatch the event to show the preview
+                    profilePicInput.dispatchEvent(changeEvent);
+                    
+                    // Clear the flag after a short delay
+                    setTimeout(() => {
+                        window.preventAutoUpload = false;
+                    }, 500);
+                    
+                    // Show message instructing to use the upload button
+                    uploadMessage.textContent = 'File received. Click "Upload Picture" button when ready.';
+                    uploadMessage.classList.remove('d-none', 'alert-danger', 'alert-success');
+                    uploadMessage.classList.add('alert-info');
+                }
+            }
+            
+            // Make the drop zone also clickable as another way to open file dialog
+            dropZone.addEventListener('click', function() {
+                profilePicInput.click();
+            });
+        }
+        
+        // Ultra simple profile picture preview
+        profilePicInput.addEventListener('change', function() {
+            console.log("DEBUG: File input change triggered");
+            
+            // Clear previous preview
+            previewImage.src = '';
+            previewContainer.style.display = 'none';
+            uploadMessage.classList.add('d-none');
+            uploadBtn.disabled = true;
+            
+            const file = this.files[0];
+            if (!file) {
+                console.log("DEBUG: No file selected");
+                return;
+            }
+            
+            console.log(`DEBUG: File selected - Name: ${file.name}, Type: ${file.type}, Size: ${file.size}B`);
+            
+            // Basic validation
+            const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+            if (!validImageTypes.includes(file.type)) {
+                console.error("DEBUG: Invalid file type:", file.type);
+                uploadMessage.textContent = 'Please select a valid image file (JPEG, PNG, GIF)';
+                uploadMessage.classList.remove('d-none', 'alert-info', 'alert-success');
+                uploadMessage.classList.add('alert-danger');
+                return;
+            }
+            
+            if (file.size > 1048576) { // 1MB
+                console.error("DEBUG: File too large:", file.size);
+                uploadMessage.textContent = 'File size must be less than 1MB';
+                uploadMessage.classList.remove('d-none', 'alert-info');
+                uploadMessage.classList.add('alert-danger');
+                return;
+            }
+            
+            // Show message while loading
+            uploadMessage.textContent = 'Reading file...';
+            uploadMessage.classList.remove('d-none', 'alert-danger', 'alert-success');
+            uploadMessage.classList.add('alert-info');
+            
+            console.log("DEBUG: Creating FileReader");
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                console.log("DEBUG: FileReader onload triggered");
+                
+                // Set the image source
+                previewImage.src = e.target.result;
+                
+                // Show the image when it's loaded
+                previewImage.onload = function() {
+                    console.log("DEBUG: Preview image loaded, dimensions:", 
+                        previewImage.naturalWidth, "x", previewImage.naturalHeight);
+                    previewContainer.style.display = 'block';
+                    
+                    // CRITICAL FIX: Z-index issue - make sure the preview is visible
+                    previewContainer.style.zIndex = "1050"; // Higher than the modal backdrop
+                };
+                
+                // Enable upload button
+                uploadBtn.disabled = false;
+                
+                // Update message
+                uploadMessage.textContent = 'Click "Upload Picture" to save your new profile image';
+                uploadMessage.classList.remove('alert-danger');
+                uploadMessage.classList.add('alert-info');
+            };
+            
+            reader.onerror = function(e) {
+                console.error("DEBUG: Error reading file:", e);
+                uploadMessage.textContent = 'Error reading file';
+                uploadMessage.classList.remove('d-none', 'alert-info');
+                uploadMessage.classList.add('alert-danger');
+            };
+            
+            console.log("DEBUG: Reading file as Data URL");
+            reader.readAsDataURL(file);
+        });
+        
+        // Set auth token in hidden field
+        document.getElementById('auth-token').value = token;
+        
+        // Tanggalin ang fetch approach at gumamit ng simplified XMLHttpRequest
+        uploadBtn.addEventListener('click', function() {
+            console.log("DEBUG: Upload button clicked (USING SIMPLEST XMLHttpRequest)");
+            
+            const file = profilePicInput.files[0];
+            if (!file) {
+                console.log("DEBUG: No file selected for upload");
+                if (uploadMessage) {
+                    uploadMessage.textContent = 'Please select an image first';
+                    uploadMessage.classList.remove('d-none');
+                    uploadMessage.classList.remove('alert-info', 'alert-success');
+                    uploadMessage.classList.add('alert-danger');
+                }
+                return;
+            }
+            
+            console.log(`DEBUG: Ready to upload file: ${file.name}, Type: ${file.type}, Size: ${file.size}B`);
+            
+            // Update UI for upload in progress
+            if (uploadMessage) {
+                uploadMessage.textContent = 'Uploading...';
+                uploadMessage.classList.remove('d-none');
+                uploadMessage.classList.remove('alert-danger', 'alert-success');
+                uploadMessage.classList.add('alert-info');
+            }
+            if (uploadBtn) {
+                uploadBtn.disabled = true;
+            }
+            
+            // Create FormData - HINDI nilalagyan ng Content-Type
+            const formData = new FormData();
+            formData.append('profilePic', file);
+            
+            console.log("DEBUG: SUPER SIMPLIFIED UPLOAD ATTEMPT");
+            
+            // Gumamit ng XMLHttpRequest para mas simple
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/student/profilepic', true);
+            
+            // ONLY AUTHORIZATION HEADER
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            
+            xhr.onload = function() {
+                console.log(`DEBUG: XHR upload complete - Status: ${xhr.status}`);
+                console.log(`DEBUG: Response text: ${xhr.responseText}`);
+                
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    console.log('DEBUG: Upload successful!');
+                    
+                    // Show success message
+                    if (uploadMessage) {
+                        uploadMessage.textContent = 'Profile picture updated successfully!';
+                        uploadMessage.classList.remove('alert-info', 'alert-danger');
+                        uploadMessage.classList.add('alert-success');
+                    }
+                    
+                    // Try to parse response
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        console.log('DEBUG: Parsed response:', result);
+                        
+                        // Update profile picture if URL is returned
+                        if (result.profilePicUrl) {
+                            if (user) {
+                                user.profilePic = result.profilePicUrl;
+                                localStorage.setItem('user', JSON.stringify(user));
+                            }
+                            
+                            // Update UI images
+                            if (navProfilePic) navProfilePic.src = result.profilePicUrl;
+                            if (currentProfilePic) currentProfilePic.src = result.profilePicUrl;
+                        }
+                    } catch (e) {
+                        console.error('DEBUG: Error parsing response:', e);
+                    }
+                    
+                    // Close modal after delay
+                    setTimeout(() => {
+                        try {
+                            const modal = bootstrap.Modal.getInstance(profilePicModal);
+                            if (modal) modal.hide();
+                        } catch (e) {
+                            console.error('DEBUG: Error closing modal:', e);
+                        }
+                    }, 1500);
+                } else {
+                    console.error(`DEBUG: Upload failed with status ${xhr.status}`);
+                    
+                    // Show error message
+                    if (uploadMessage) {
+                        let errorMessage = `Upload failed (Status: ${xhr.status})`;
+                        
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            if (result.message) {
+                                errorMessage = result.message;
+                            }
+                        } catch (e) {
+                            // Use raw response if not JSON
+                            if (xhr.responseText) {
+                                errorMessage = xhr.responseText;
+                            }
+                        }
+                        
+                        uploadMessage.textContent = errorMessage;
+                        uploadMessage.classList.remove('d-none', 'alert-info', 'alert-success');
+                        uploadMessage.classList.add('alert-danger');
+                    }
+                }
+                
+                // Re-enable upload button
+                if (uploadBtn) uploadBtn.disabled = false;
+            };
+            
+            xhr.onerror = function(e) {
+                console.error('DEBUG: Network error during upload:', e);
+                
+                if (uploadMessage) {
+                    uploadMessage.textContent = 'Network error occurred during upload';
+                    uploadMessage.classList.remove('d-none', 'alert-info', 'alert-success');
+                    uploadMessage.classList.add('alert-danger');
+                }
+                
+                if (uploadBtn) uploadBtn.disabled = false;
+            };
+            
+            console.log('DEBUG: Sending XMLHttpRequest...');
+            xhr.send(formData);
+        });
+
+        // Replace the function that opens the modal with one that redirects to the profile page
+        function openProfileEditor() {
+            window.location.href = '/test-profilepic.html';
+        }
+
+        // Replace any event listeners that would open the modal
+        document.addEventListener('DOMContentLoaded', function() {
+            // Replace modal opening with redirection
+            const profileElements = document.querySelectorAll('[data-action="open-profile-editor"]');
+            profileElements.forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openProfileEditor();
+                });
+            });
+            
+            // Add this attribute to any profile picture-related elements
+            const profilePic = document.querySelector('.profile-pic-sm');
+            if (profilePic) {
+                profilePic.setAttribute('data-action', 'open-profile-editor');
+                profilePic.style.cursor = 'pointer';
+            }
         });
     </script>
 </body>
