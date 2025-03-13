@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Student Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 400px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Student Tracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="nav-link" id="username-display"></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logout-btn">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3>Location Tracking</h3>
+                        <div class="mb-3">
+                            <button id="tracking-btn" class="btn btn-primary">
+                                Start Tracking
+                            </button>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3>Pending Connections</h3>
+                        <div id="pending-connections" class="list-group">
+                            <!-- Pending connections will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h3>Connected Parents</h3>
+                        <div id="connected-parents" class="list-group">
+                            <!-- Connected parents will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!token || !user || user.userType !== 'Student') {
+            window.location.href = '/login.html';
+        }
+
+        // Display username
+        document.getElementById('username-display').textContent = user.username;
+
+        // Initialize map
+        const map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        let currentMarker = null;
+
+        // Initialize SignalR
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/trackingHub', { accessTokenFactory: () => token })
+            .withAutomaticReconnect()
+            .build();
+
+        let isTracking = false;
+        let watchId = null;
+
+        // Check for active tracking session on page load
+        async function checkActiveSession() {
+            try {
+                const response = await fetch('/api/tracking/status', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.isActive) {
+                        console.log('Active tracking session found, resuming tracking');
+                        isTracking = true;
+                        document.getElementById('tracking-btn').textContent = 'Stop Tracking';
+                        document.getElementById('tracking-btn').classList.replace('btn-primary', 'btn-danger');
+                        startTracking();
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking tracking status:', error);
+            }
+        }
+
+        // Start/Stop tracking
+        document.getElementById('tracking-btn').addEventListener('click', () => {
+            if (!isTracking) {
+                startTracking(true);
+            } else {
+                stopTracking(true);
+            }
+        });
+
+        function startTracking(userInitiated = false) {
+            if ('geolocation' in navigator) {
+                if (userInitiated) {
+                    // Create tracking session on server
+                    fetch('/api/tracking/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to start tracking session');
+                        }
+                        console.log('Tracking session started on server');
+                    })
+                    .catch(error => {
+                        console.error('Error starting tracking session:', error);
+                        alert('Error starting tracking session. Please try again.');
+                        return;
+                    });
+                }
+
+                watchId = navigator.geolocation.watchPosition(
+                    async (position) => {
+                        const { latitude, longitude } = position.coords;
+                        
+                        // Update map
+                        if (currentMarker) {
+                            map.removeLayer(currentMarker);
+                        }
+                        currentMarker = L.marker([latitude, longitude]).addTo(map);
+                        map.setView([latitude, longitude], 13);
+
+                        // Send location to server using SignalR
+                        if (connection.state === signalR.HubConnectionState.Connected) {
+                            try {
+                                console.log(`Sending location: ${latitude}, ${longitude}`);
+                                await connection.invoke('UpdateLocation', latitude, longitude);
+                                console.log('Location sent successfully');
+                            } catch (error) {
+                                console.error('Error sending location:', error);
+                            }
+                        } else {
+                            console.warn('SignalR connection not established. Current state:', connection.state);
+                        }
+                    },
+                    (error) => console.error('Geolocation error:', error),
+                    { enableHighAccuracy: true, maximumAge: 10000 }
+                );
+
+                isTracking = true;
+                document.getElementById('tracking-btn').textContent = 'Stop Tracking';
+                document.getElementById('tracking-btn').classList.replace('btn-primary', 'btn-danger');
+                
+                // Save tracking state to localStorage
+                localStorage.setItem('isTracking', 'true');
+            } else {
+                alert('Geolocation is not available in your browser.');
+            }
+        }
+
+        function stopTracking(userInitiated = false) {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            
+            if (userInitiated && connection.state === signalR.HubConnectionState.Connected) {
+                try {
+                    // Only stop tracking on server if user explicitly clicked the button
+                    connection.invoke('StopTracking');
+                    console.log('Stopped tracking successfully');
+                    
+                    // Also call API endpoint to update session
+                    fetch('/api/tracking/stop', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to stop tracking session');
+                        }
+                        console.log('Tracking session stopped on server');
+                    })
+                    .catch(error => {
+                        console.error('Error stopping tracking session:', error);
+                    });
+                } catch (error) {
+                    console.error('Error stopping tracking:', error);
+                }
+            }
+            
+            isTracking = false;
+            document.getElementById('tracking-btn').textContent = 'Start Tracking';
+            document.getElementById('tracking-btn').classList.replace('btn-danger', 'btn-primary');
+            
+            // Remove tracking state from localStorage
+            localStorage.removeItem('isTracking');
+        }
+
+        // Add window unload event to save state but NOT stop tracking
+        window.addEventListener('beforeunload', function() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            // Note: we don't call StopTracking() here to keep the tracking active
+        });
+
+        // Global error handling
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('Global error:', message, 'at', source, ':', lineno, ':', colno);
+            console.error('Error object:', error);
+            return false;
+        };
+
+        // Initialize
+        connection.start()
+            .then(() => {
+                console.log('Connected to SignalR Hub');
+                loadConnections();
+                
+                // Check for active tracking session
+                checkActiveSession();
+                
+                // If was tracking before page refresh, resume tracking
+                if (localStorage.getItem('isTracking') === 'true') {
+                    console.log('Resuming tracking after page refresh');
+                    startTracking();
+                }
+            })
+            .catch(error => console.error('SignalR Connection Error:', error));
+
+        // Load connections
+        async function loadConnections() {
+            try {
+                // Display loading indicators
+                document.getElementById('pending-connections').innerHTML = '<div class="list-group-item">Loading...</div>';
+                document.getElementById('connected-parents').innerHTML = '<div class="list-group-item">Loading...</div>';
+                
+                // Load pending connections
+                const pendingResponse = await fetch('/api/connection/pending', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!pendingResponse.ok) {
+                    const errorText = await pendingResponse.text();
+                    console.error('Error fetching pending connections:', errorText);
+                    document.getElementById('pending-connections').innerHTML = 
+                        `<div class="list-group-item text-danger">Error: ${errorText}</div>`;
+                    return;
+                }
+                
+                const pendingData = await pendingResponse.json();
+                console.log('Pending connections raw data:', JSON.stringify(pendingData, null, 2));
+                
+                if (pendingData.length === 0) {
+                    document.getElementById('pending-connections').innerHTML = 
+                        '<div class="list-group-item">No pending connections</div>';
+                } else {
+                    const pendingHtml = pendingData.map((conn, index) => {
+                        console.log(`Connection ${index}:`, conn);
+                        const parentName = conn.parent && conn.parent.username ? conn.parent.username : 'Unknown Parent';
+                        return `
+                        <div class="list-group-item">
+                            <p class="mb-1">From: ${parentName}</p>
+                            <p class="mb-1 small text-muted">Connection ID: ${conn.connectionId}</p>
+                            <div class="btn-group mt-2">
+                                <button class="btn btn-success btn-sm" 
+                                    onclick="handleConnection(${conn.connectionId}, true)">
+                                    Accept
+                                </button>
+                                <button class="btn btn-danger btn-sm" 
+                                    onclick="handleConnection(${conn.connectionId}, false)">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+                    document.getElementById('pending-connections').innerHTML = pendingHtml;
+                }
+
+                // Load connected parents
+                const connectedResponse = await fetch('/api/connection/connected', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!connectedResponse.ok) {
+                    const errorText = await connectedResponse.text();
+                    console.error('Error fetching connected parents:', errorText);
+                    document.getElementById('connected-parents').innerHTML = 
+                        `<div class="list-group-item text-danger">Error: ${errorText}</div>`;
+                    return;
+                }
+                
+                const connectedData = await connectedResponse.json();
+                console.log('Connected parents raw data:', JSON.stringify(connectedData, null, 2));
+                
+                if (connectedData.length === 0) {
+                    document.getElementById('connected-parents').innerHTML = 
+                        '<div class="list-group-item">No connected parents</div>';
+                } else {
+                    const connectedHtml = connectedData.map((parent, index) => {
+                        console.log(`Parent ${index}:`, parent);
+                        return `
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${parent.username || 'Unknown'}</strong>
+                                    <div class="small text-muted">${parent.email || 'No email'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+                    document.getElementById('connected-parents').innerHTML = connectedHtml;
+                }
+            } catch (error) {
+                console.error('Error loading connections:', error);
+                document.getElementById('pending-connections').innerHTML = 
+                    `<div class="list-group-item text-danger">Error loading pending connections: ${error.message}</div>`;
+                document.getElementById('connected-parents').innerHTML = 
+                    `<div class="list-group-item text-danger">Error loading connected parents: ${error.message}</div>`;
+            }
+        }
+
+        // Add this function for global error handling
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('Global error:', message, 'at', source, ':', lineno, ':', colno);
+            console.error('Error object:', error);
+            return false;
+        };
+
+        // Define handleConnection as a global function
+        window.handleConnection = async function(connectionId, accept) {
+            try {
+                console.log(`Handling connection: ID=${connectionId}, Accept=${accept}`);
+                const endpoint = accept ? 'accept' : 'reject';
+                console.log(`Endpoint: /api/connection/${connectionId}/${endpoint}`);
+                
+                const response = await fetch(`/api/connection/${connectionId}/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    console.log('Connection updated successfully');
+                    loadConnections();
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error handling connection:', errorText);
+                    alert('Failed to update connection status: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error handling connection:', error);
+                alert('An error occurred while updating the connection: ' + error.message);
+            }
+        };
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        });
+    </script>
+</body>
+</html> 
