@@ -6,26 +6,269 @@
     <title>Parent Dashboard - Student Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        #map { height: 400px; }
+        :root {
+            --primary-color: #5469d4;
+            --secondary-color: #4655a8;
+            --accent-color: #f7fafc;
+            --text-color: #2d3748;
+            --light-text: #718096;
+            --success-color: #38a169;
+            --danger-color: #e53e3e;
+            --warning-color: #f6ad55;
+            --info-color: #63b3ed;
+            --border-radius: 10px;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --border-color: #e2e8f0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-color);
+            background-color: #f7fafc;
+            line-height: 1.6;
+        }
+        
+        /* Navbar styling */
+        .navbar {
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-dark.bg-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Card styling */
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 20px;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Map styling */
+        #map { 
+            height: 420px; 
+            border-radius: var(--border-radius);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Student card styling */
         .student-card {
             cursor: pointer;
             transition: all 0.3s;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid transparent;
         }
+        
         .student-card:hover {
             background-color: #f8f9fa;
+            border-color: var(--border-color);
         }
+        
         .student-card.active {
-            background-color: #e2f0ff;
-            border-left: 4px solid #0d6efd;
+            background-color: rgba(84, 105, 212, 0.1);
+            border-left: 4px solid var(--primary-color);
         }
+        
+        /* Badge animation */
         .badge.bg-pulse {
             animation: pulse 1.5s infinite;
         }
+        
+        .badge {
+            padding: 6px 10px;
+            font-weight: 500;
+            border-radius: 20px;
+        }
+        
+        .badge.bg-success {
+            background-color: var(--success-color) !important;
+        }
+        
+        .badge.bg-secondary {
+            background-color: var(--light-text) !important;
+        }
+        
+        .badge.bg-info {
+            background-color: var(--info-color) !important;
+        }
+        
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
+        }
+        
+        /* Button styling */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(84, 105, 212, 0.3);
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(84, 105, 212, 0.2);
+            border-color: var(--primary-color);
+        }
+        
+        /* Typography enhancements */
+        h3 {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 16px;
+        }
+        
+        .text-muted {
+            color: var(--light-text) !important;
+        }
+        
+        /* Dropdown enhancements */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius);
+        }
+        
+        .dropdown-item {
+            padding: 10px 16px;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(84, 105, 212, 0.1);
+        }
+        
+        /* Currently monitoring status */
+        #currently-monitoring {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background-color: rgba(99, 179, 237, 0.1);
+            display: inline-block;
+        }
+        
+        /* Custom map marker styling */
+        .custom-map-marker {
+            background: transparent;
+        }
+        
+        .marker-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 30px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            transform-origin: bottom center;
+            animation: bounce 1s ease infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        
+        /* Map popup styling */
+        .map-popup {
+            padding: 5px;
+        }
+        
+        .popup-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .popup-content {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+        
+        .popup-info {
+            margin-bottom: 4px;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.2);
+        }
+        
+        .leaflet-popup-content {
+            margin: 10px 12px;
+            min-width: 200px;
+        }
+        
+        /* Mobile-friendly styles */
+        @media (max-width: 767px) {
+            #map { height: 300px; }
+            .container { padding-left: 15px; padding-right: 15px; }
+            .card { margin-bottom: 20px; }
+            .student-card { padding: 12px; }
+            .navbar-brand { font-size: 1.2rem; }
+            .btn { width: 100%; margin-bottom: 12px; }
+            h3 { font-size: 1.5rem; }
+            .dropdown-menu { width: 100%; }
+            
+            .student-card, .nav-link, .btn {
+                padding: 12px 15px;
+            }
+            
+            .dropdown-item {
+                padding: 12px 15px;
+            }
+            
+            .list-group-item {
+                padding: 15px;
+            }
         }
     </style>
 </head>
@@ -61,11 +304,12 @@
 
     <div class="container mt-4">
         <div class="row">
-            <div class="col-md-8">
-                <div class="card mb-4">
+            <!-- Map section - will be full width on mobile -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3>Student Locations</h3>
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                            <h3 class="mb-2 mb-md-0">Student Locations</h3>
                             <div id="currently-monitoring" class="text-muted"></div>
                         </div>
                         <div id="map"></div>
@@ -73,7 +317,8 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <!-- Right sidebar - will stack below on mobile -->
+            <div class="col-lg-4">
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3>Connect with Student</h3>
@@ -131,7 +376,7 @@
         }
 
         // Display username
-        document.getElementById('username-display').textContent = user.username;
+        document.getElementById('username-display').textContent = user.fullname || user.username;
 
         // Initialize map
         const map = L.map('map').setView([0, 0], 2);
@@ -154,8 +399,11 @@
             .build();
 
         // Handle receiving location updates
-        connection.on('ReceiveLocation', (studentId, username, latitude, longitude) => {
-            console.log(`Receiving location for student ${studentId} (${username}): ${latitude}, ${longitude}`);
+        connection.on('ReceiveLocation', (studentId, username, latitude, longitude, fullname) => {
+            console.log(`Receiving location for student ${studentId} (${fullname || username}): ${latitude}, ${longitude}`);
+            
+            // Use fullname if available, otherwise fall back to username
+            const displayName = fullname || username;
             
             // Create studentMarkers entry if it doesn't exist
             if (!studentMarkers[studentId]) {
@@ -172,9 +420,28 @@
                 map.removeLayer(studentMarkers[studentId].marker);
             }
 
-            // Add new marker
-            const marker = L.marker([latitude, longitude])
-                .bindPopup(`<strong>${username || 'Student'}</strong><br>Last updated: ${new Date().toLocaleString()}`);
+            // Add new marker with custom icon - use fullname from studentMarkers object
+            const customIcon = L.divIcon({
+                className: 'custom-map-marker',
+                html: `<div class="marker-icon"><i class="bi bi-geo-alt-fill"></i></div>`,
+                iconSize: [40, 40],
+                iconAnchor: [20, 40],
+                popupAnchor: [0, -40]
+            });
+            
+            const marker = L.marker([latitude, longitude], { icon: customIcon })
+                .bindPopup(`
+                    <div class="map-popup">
+                        <div class="popup-header">
+                            <i class="bi bi-person-fill me-2"></i>
+                            <strong>${displayName}</strong>
+                        </div>
+                        <div class="popup-content">
+                            <div class="popup-info"><i class="bi bi-geo-alt me-1"></i> Location active</div>
+                            <div class="popup-time"><i class="bi bi-clock me-1"></i> ${new Date().toLocaleString()}</div>
+                        </div>
+                    </div>
+                `);
                 
             // Only add the marker to the map if this is the active student
             if (activeStudentId === studentId) {
@@ -184,7 +451,7 @@
                 
                 // Update monitoring info
                 document.getElementById('currently-monitoring').innerHTML = 
-                    `Monitoring: <strong>${username}</strong> - Last update: ${new Date().toLocaleTimeString()}`;
+                    `Monitoring: <strong>${displayName}</strong> - Last update: ${new Date().toLocaleTimeString()}`;
             }
             
             // Save marker and update status
@@ -192,6 +459,7 @@
             studentMarkers[studentId].isActive = true;
             studentMarkers[studentId].lastUpdate = new Date();
             studentMarkers[studentId].username = username;
+            studentMarkers[studentId].fullname = displayName;
             studentMarkers[studentId].location = [latitude, longitude];
             
             // Update student status in the list
@@ -212,7 +480,7 @@
             // If this is the active student, update the UI
             if (activeStudentId === studentId) {
                 document.getElementById('currently-monitoring').innerHTML = 
-                    `<span class="text-warning">Student ${studentMarkers[studentId]?.username || activeStudentName} stopped sharing location</span>`;
+                    `<span class="text-warning">Student ${studentMarkers[studentId]?.fullname || studentMarkers[studentId]?.username || activeStudentName} stopped sharing location</span>`;
             }
         });
 
@@ -363,7 +631,7 @@
                 } else {
                     const dropdownHtml = data.map(student => {
                         const studentId = student.studentId;
-                        const username = student.username || 'Unknown Student';
+                        const username = student.fullname || student.username || 'Unknown Student';
                         
                         return `
                         <li>
@@ -386,7 +654,7 @@
                     console.log('Processing student:', student);
                     // Ensure we have studentId and username
                     const studentId = student.studentId;
-                    const username = student.username || 'Unknown Student';
+                    const username = student.fullname || student.username || 'Unknown Student';
                     
                     return `
                         <div class="list-group-item student-card" data-student-id="${studentId}" onclick="setActiveStudent(${studentId}, '${username}')">

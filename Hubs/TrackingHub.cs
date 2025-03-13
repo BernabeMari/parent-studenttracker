@@ -68,7 +68,8 @@ namespace StudentTracker.Hubs
                         studentId, 
                         student.Username, 
                         latitude, 
-                        longitude);
+                        longitude,
+                        student.Fullname);
                 }
                 
                 // Create or update tracking session

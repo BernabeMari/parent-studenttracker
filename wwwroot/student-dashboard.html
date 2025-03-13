@@ -6,8 +6,297 @@
     <title>Student Dashboard - Student Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        #map { height: 400px; }
+        :root {
+            --primary-color: #5469d4;
+            --secondary-color: #4655a8;
+            --accent-color: #f7fafc;
+            --text-color: #2d3748;
+            --light-text: #718096;
+            --success-color: #38a169;
+            --danger-color: #e53e3e;
+            --warning-color: #f6ad55;
+            --info-color: #63b3ed;
+            --border-radius: 10px;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --border-color: #e2e8f0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-color);
+            background-color: #f7fafc;
+            line-height: 1.6;
+        }
+        
+        /* Navbar styling */
+        .navbar {
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-dark.bg-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Card styling */
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 20px;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Map styling */
+        #map { 
+            height: 420px; 
+            border-radius: var(--border-radius);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Button styling */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(84, 105, 212, 0.3);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background-color: #2f9159;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border: none;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c53030;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+        }
+        
+        /* Tracking button styling */
+        #tracking-btn {
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(84, 105, 212, 0.2);
+            border-radius: 50px;
+            min-width: 220px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        #tracking-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+        
+        #tracking-btn:hover:before {
+            opacity: 1;
+        }
+        
+        #tracking-btn.btn-danger {
+            background: linear-gradient(45deg, var(--danger-color), #c53030);
+            box-shadow: 0 4px 10px rgba(229, 62, 62, 0.2);
+        }
+        
+        .tracking-btn-animated.active {
+            animation: pulse-tracking 1.5s infinite;
+        }
+        
+        @keyframes pulse-tracking {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        #tracking-status {
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+        
+        /* List group item styling */
+        .list-group-item {
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .list-group-item:hover {
+            background-color: var(--accent-color);
+        }
+        
+        /* Typography enhancements */
+        h3 {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 16px;
+        }
+        
+        .text-muted {
+            color: var(--light-text) !important;
+        }
+        
+        /* Connection request items for better display */
+        .connection-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background-color: white;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .connection-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 6px 10px;
+            font-weight: 500;
+            border-radius: 20px;
+        }
+        
+        /* Avatar circle */
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* Custom map marker styling */
+        .custom-map-marker {
+            background: transparent;
+        }
+        
+        .marker-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 30px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            transform-origin: bottom center;
+            animation: bounce 1s ease infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        
+        /* Map popup styling */
+        .map-popup {
+            padding: 5px;
+        }
+        
+        .popup-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .popup-content {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.2);
+        }
+        
+        .leaflet-popup-content {
+            margin: 10px 12px;
+        }
+        
+        /* Mobile-friendly styles */
+        @media (max-width: 767px) {
+            #map { height: 300px; }
+            .container { padding-left: 15px; padding-right: 15px; }
+            .card { margin-bottom: 20px; }
+            .navbar-brand { font-size: 1.2rem; }
+            .btn { width: 100%; margin-bottom: 12px; }
+            h3 { font-size: 1.5rem; }
+            
+            .nav-link, .btn {
+                padding: 12px 15px;
+            }
+            
+            .list-group-item {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -32,21 +321,32 @@
 
     <div class="container mt-4">
         <div class="row">
-            <div class="col-md-8">
-                <div class="card mb-4">
+            <!-- Map section - will be full width on mobile -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
                     <div class="card-body">
                         <h3>Location Tracking</h3>
-                        <div class="mb-3">
-                            <button id="tracking-btn" class="btn btn-primary">
-                                Start Tracking
-                            </button>
+                        <div class="mb-4">
+                            <div class="tracking-button-container text-center">
+                                <button id="tracking-btn" class="btn btn-primary btn-lg tracking-btn-animated">
+                                    <i class="bi bi-broadcast me-2"></i> Start Tracking
+                                </button>
+                                <div id="tracking-status" class="mt-2 text-muted small">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Click to start sharing your location with connected parents
+                                </div>
+                            </div>
                         </div>
                         <div id="map"></div>
+                        <div class="mt-2 text-center d-md-none">
+                            <small class="text-muted">Scroll down to see your connections</small>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <!-- Right sidebar - will stack below on mobile -->
+            <div class="col-lg-4">
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3>Pending Connections</h3>
@@ -80,7 +380,7 @@
         }
 
         // Display username
-        document.getElementById('username-display').textContent = user.username;
+        document.getElementById('username-display').textContent = user.fullname || user.username;
 
         // Initialize map
         const map = L.map('map').setView([0, 0], 2);
@@ -110,8 +410,15 @@
                     if (data.isActive) {
                         console.log('Active tracking session found, resuming tracking');
                         isTracking = true;
-                        document.getElementById('tracking-btn').textContent = 'Stop Tracking';
-                        document.getElementById('tracking-btn').classList.replace('btn-primary', 'btn-danger');
+                        const trackingBtn = document.getElementById('tracking-btn');
+                        const trackingStatus = document.getElementById('tracking-status');
+                        
+                        trackingBtn.innerHTML = '<i class="bi bi-broadcast-pin me-2"></i> Stop Tracking';
+                        trackingBtn.classList.replace('btn-primary', 'btn-danger');
+                        trackingBtn.classList.add('active');
+                        
+                        trackingStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> Location tracking is active and sharing with connected parents';
+                        
                         startTracking();
                     }
                 }
@@ -157,12 +464,38 @@
                     async (position) => {
                         const { latitude, longitude } = position.coords;
                         
-                        // Update map
+                        // Update map with custom icon
                         if (currentMarker) {
                             map.removeLayer(currentMarker);
                         }
-                        currentMarker = L.marker([latitude, longitude]).addTo(map);
-                        map.setView([latitude, longitude], 13);
+                        
+                        // Create custom icon for marker
+                        const customIcon = L.divIcon({
+                            className: 'custom-map-marker',
+                            html: `<div class="marker-icon"><i class="bi bi-geo-alt-fill"></i></div>`,
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 40],
+                            popupAnchor: [0, -40]
+                        });
+                        
+                        // Create marker with custom icon and popup
+                        currentMarker = L.marker([latitude, longitude], { icon: customIcon })
+                            .bindPopup(`
+                                <div class="map-popup">
+                                    <div class="popup-header">
+                                        <i class="bi bi-broadcast-pin me-2"></i>
+                                        <strong>Your Location</strong>
+                                    </div>
+                                    <div class="popup-content">
+                                        <div>Latitude: ${latitude.toFixed(6)}</div>
+                                        <div>Longitude: ${longitude.toFixed(6)}</div>
+                                        <div class="mt-2 small">Updated: ${new Date().toLocaleTimeString()}</div>
+                                    </div>
+                                </div>
+                            `)
+                            .addTo(map);
+                            
+                        map.setView([latitude, longitude], 15);
 
                         // Send location to server using SignalR
                         if (connection.state === signalR.HubConnectionState.Connected) {
@@ -182,8 +515,14 @@
                 );
 
                 isTracking = true;
-                document.getElementById('tracking-btn').textContent = 'Stop Tracking';
-                document.getElementById('tracking-btn').classList.replace('btn-primary', 'btn-danger');
+                const trackingBtn = document.getElementById('tracking-btn');
+                const trackingStatus = document.getElementById('tracking-status');
+                
+                trackingBtn.innerHTML = '<i class="bi bi-broadcast-pin me-2"></i> Stop Tracking';
+                trackingBtn.classList.replace('btn-primary', 'btn-danger');
+                trackingBtn.classList.add('active');
+                
+                trackingStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> Location tracking is active and sharing with connected parents';
                 
                 // Save tracking state to localStorage
                 localStorage.setItem('isTracking', 'true');
@@ -231,8 +570,14 @@
             }
             
             isTracking = false;
-            document.getElementById('tracking-btn').textContent = 'Start Tracking';
-            document.getElementById('tracking-btn').classList.replace('btn-danger', 'btn-primary');
+            const trackingBtn = document.getElementById('tracking-btn');
+            const trackingStatus = document.getElementById('tracking-status');
+            
+            trackingBtn.innerHTML = '<i class="bi bi-broadcast me-2"></i> Start Tracking';
+            trackingBtn.classList.replace('btn-danger', 'btn-primary');
+            trackingBtn.classList.remove('active');
+            
+            trackingStatus.innerHTML = '<i class="bi bi-info-circle me-1"></i> Click to start sharing your location with connected parents';
             
             // Remove tracking state from localStorage
             localStorage.removeItem('isTracking');
@@ -300,19 +645,29 @@
                 } else {
                     const pendingHtml = pendingData.map((conn, index) => {
                         console.log(`Connection ${index}:`, conn);
-                        const parentName = conn.parent && conn.parent.username ? conn.parent.username : 'Unknown Parent';
+                        const parentName = conn.parent && (conn.parent.fullname || conn.parent.username) ? 
+                            (conn.parent.fullname || conn.parent.username) : 'Unknown Parent';
+                        const parentEmail = conn.parent && conn.parent.email ? conn.parent.email : 'No email provided';
+                        const requestDate = new Date(conn.createdAt).toLocaleString();
+                        
                         return `
-                        <div class="list-group-item">
-                            <p class="mb-1">From: ${parentName}</p>
-                            <p class="mb-1 small text-muted">Connection ID: ${conn.connectionId}</p>
-                            <div class="btn-group mt-2">
+                        <div class="connection-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h5 class="mb-1">${parentName}</h5>
+                                    <p class="mb-1 small text-muted">${parentEmail}</p>
+                                </div>
+                                <span class="badge bg-warning">Pending</span>
+                            </div>
+                            <p class="small mb-2 text-muted">Request received: ${requestDate}</p>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button class="btn btn-danger btn-sm me-2" 
+                                    onclick="handleConnection(${conn.connectionId}, false)">
+                                    <i class="bi bi-x-circle"></i> Reject
+                                </button>
                                 <button class="btn btn-success btn-sm" 
                                     onclick="handleConnection(${conn.connectionId}, true)">
-                                    Accept
-                                </button>
-                                <button class="btn btn-danger btn-sm" 
-                                    onclick="handleConnection(${conn.connectionId}, false)">
-                                    Reject
+                                    <i class="bi bi-check-circle"></i> Accept
                                 </button>
                             </div>
                         </div>
@@ -346,10 +701,20 @@
                         return `
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${parent.username || 'Unknown'}</strong>
-                                    <div class="small text-muted">${parent.email || 'No email'}</div>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="avatar-circle bg-primary text-white">
+                                            ${(parent.fullname || parent.username || '?').charAt(0).toUpperCase()}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <strong>${parent.fullname || parent.username || 'Unknown'}</strong>
+                                        <div class="small text-muted">${parent.email || 'No email'}</div>
+                                    </div>
                                 </div>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Connected
+                                </span>
                             </div>
                         </div>
                         `;

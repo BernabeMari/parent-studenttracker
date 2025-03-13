@@ -144,7 +144,8 @@ namespace StudentTracker.Controllers
                         {
                             c.Parent.ParentId,
                             c.Parent.Username,
-                            c.Parent.Email
+                            c.Parent.Email,
+                            c.Parent.Fullname
                         }
                     })
                     .ToListAsync();
@@ -165,7 +166,8 @@ namespace StudentTracker.Controllers
                         {
                             c.Student.StudentId,
                             c.Student.Username,
-                            c.Student.Email
+                            c.Student.Email,
+                            c.Student.Fullname
                         }
                     })
                     .ToListAsync();
@@ -196,7 +198,8 @@ namespace StudentTracker.Controllers
                     {
                         c.Parent.ParentId,
                         c.Parent.Username,
-                        c.Parent.Email
+                        c.Parent.Email,
+                        c.Parent.Fullname
                     })
                     .ToListAsync();
 
@@ -211,7 +214,8 @@ namespace StudentTracker.Controllers
                     {
                         c.Student.StudentId,
                         c.Student.Username,
-                        c.Student.Email
+                        c.Student.Email,
+                        c.Student.Fullname
                     })
                     .ToListAsync();
 

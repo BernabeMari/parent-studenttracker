@@ -69,3 +69,4 @@ C:\VSCodes\studenttrackingC#\obj\Debug\net6.0\StudentTracker.pdb
 C:\VSCodes\studenttrackingC#\obj\Debug\net6.0\StudentTracker.genruntimeconfig.cache
 C:\VSCodes\studenttrackingC#\obj\Debug\net6.0\ref\StudentTracker.dll
 C:\VSCodes\studenttrackingC#\bin\Debug\net6.0\StudentTracker.staticwebassets.runtime.json
+C:\VSCodes\studenttrackingC#\obj\Debug\net6.0\StudentTracker.sourcelink.json

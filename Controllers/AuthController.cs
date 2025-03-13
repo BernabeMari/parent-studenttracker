@@ -39,6 +39,7 @@ namespace StudentTracker.Controllers
                     Username = model.Username,
                     Password = model.Password,
                     Email = model.Email,
+                    Fullname = model.Fullname,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -60,6 +61,7 @@ namespace StudentTracker.Controllers
                     Username = model.Username,
                     Password = model.Password,
                     Email = model.Email,
+                    Fullname = model.Fullname,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -92,6 +94,7 @@ namespace StudentTracker.Controllers
                         userId = student.StudentId,
                         student.Username,
                         student.Email,
+                        student.Fullname,
                         UserType = "Student"
                     }
                 });
@@ -113,6 +116,7 @@ namespace StudentTracker.Controllers
                         userId = parent.ParentId,
                         parent.Username,
                         parent.Email,
+                        parent.Fullname,
                         UserType = "Parent"
                     }
                 });

@@ -16,6 +16,10 @@
                         <div id="error-message" class="alert alert-danger d-none"></div>
                         <form id="register-form">
                             <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="fullname" required>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Username</label>
                                 <input type="text" class="form-control" id="username" required>
                             </div>
@@ -48,6 +52,7 @@
     <script>
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const fullname = document.getElementById('fullname').value;
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -55,7 +60,7 @@
             const errorMessage = document.getElementById('error-message');
 
             try {
-                console.log('Sending registration request:', { username, email, password, userType });
+                console.log('Sending registration request:', { username, email, password, userType, fullname });
                 
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
@@ -66,7 +71,8 @@
                         username: username,
                         email: email,
                         password: password,
-                        userType: userType
+                        userType: userType,
+                        fullname: fullname
                     })
                 });
 

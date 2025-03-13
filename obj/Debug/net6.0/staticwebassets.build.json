@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "euMv+tSjmqJuEg5KgCtuBkhuFLAK0NilTVkpLgW6nKY=",
+  "Hash": "G+cxAE1D7VvjCI+R7Pvboz46fyTOATMX25Yqbnpu2cI=",
   "Source": "StudentTracker",
   "BasePath": "_content/StudentTracker",
   "Mode": "Default",
@@ -73,8 +73,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "p17pjilf0v",
-      "Integrity": "7XrW5yUcj+1pVTM4Pmbd/LblC3h5bzfzEskercfyHkY=",
+      "Fingerprint": "ne0069e1bn",
+      "Integrity": "8VMeFjleNivjmySKDqNPQVCp34xFoXiU93q9uc9VakY=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\parent-dashboard.html"
@@ -94,8 +94,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "1ou7axnl28",
-      "Integrity": "/0qzGNX8GvSeI5nQF+FPqHJ606mV2/w+3ubYCPS5ixM=",
+      "Fingerprint": "2d052ki2mh",
+      "Integrity": "6rxelpkTDeDHe+63yFXZk5T1TXQ3Ns4RCnAlVFtfUNg=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\register.html"
@@ -115,8 +115,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "n66j396tv5",
-      "Integrity": "8RJr7kO5K+/NbprOnbvRX8kuLdVAQVjqoIDzgE8worY=",
+      "Fingerprint": "9k89qpz8m7",
+      "Integrity": "mSGepijodIEm5gfVKchQuCs/TxW0jYkc6rLGzAxv8S8=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\student-dashboard.html"
@@ -298,7 +298,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "20712"
+          "Value": "29402"
         },
         {
           "Name": "Content-Type",
@@ -306,11 +306,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"7XrW5yUcj+1pVTM4Pmbd/LblC3h5bzfzEskercfyHkY=\""
+          "Value": "\"8VMeFjleNivjmySKDqNPQVCp34xFoXiU93q9uc9VakY=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 09:51:18 GMT"
+          "Value": "Thu, 13 Mar 2025 10:59:10 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -320,12 +320,12 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-7XrW5yUcj+1pVTM4Pmbd/LblC3h5bzfzEskercfyHkY="
+          "Value": "sha256-8VMeFjleNivjmySKDqNPQVCp34xFoXiU93q9uc9VakY="
         }
       ]
     },
     {
-      "Route": "parent-dashboard.p17pjilf0v.html",
+      "Route": "parent-dashboard.ne0069e1bn.html",
       "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\parent-dashboard.html",
       "Selectors": [],
       "ResponseHeaders": [
@@ -335,7 +335,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "20712"
+          "Value": "29402"
         },
         {
           "Name": "Content-Type",
@@ -343,11 +343,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"7XrW5yUcj+1pVTM4Pmbd/LblC3h5bzfzEskercfyHkY=\""
+          "Value": "\"8VMeFjleNivjmySKDqNPQVCp34xFoXiU93q9uc9VakY=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 09:51:18 GMT"
+          "Value": "Thu, 13 Mar 2025 10:59:10 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -357,7 +357,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "p17pjilf0v"
+          "Value": "ne0069e1bn"
         },
         {
           "Name": "label",
@@ -365,12 +365,12 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-7XrW5yUcj+1pVTM4Pmbd/LblC3h5bzfzEskercfyHkY="
+          "Value": "sha256-8VMeFjleNivjmySKDqNPQVCp34xFoXiU93q9uc9VakY="
         }
       ]
     },
     {
-      "Route": "register.1ou7axnl28.html",
+      "Route": "register.2d052ki2mh.html",
       "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\register.html",
       "Selectors": [],
       "ResponseHeaders": [
@@ -380,7 +380,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "5784"
+          "Value": "6170"
         },
         {
           "Name": "Content-Type",
@@ -388,11 +388,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"/0qzGNX8GvSeI5nQF+FPqHJ606mV2/w+3ubYCPS5ixM=\""
+          "Value": "\"6rxelpkTDeDHe+63yFXZk5T1TXQ3Ns4RCnAlVFtfUNg=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 09:25:36 GMT"
+          "Value": "Thu, 13 Mar 2025 10:27:47 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -402,7 +402,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1ou7axnl28"
+          "Value": "2d052ki2mh"
         },
         {
           "Name": "label",
@@ -410,7 +410,7 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-/0qzGNX8GvSeI5nQF+FPqHJ606mV2/w+3ubYCPS5ixM="
+          "Value": "sha256-6rxelpkTDeDHe+63yFXZk5T1TXQ3Ns4RCnAlVFtfUNg="
         }
       ]
     },
@@ -425,7 +425,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "5784"
+          "Value": "6170"
         },
         {
           "Name": "Content-Type",
@@ -433,11 +433,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"/0qzGNX8GvSeI5nQF+FPqHJ606mV2/w+3ubYCPS5ixM=\""
+          "Value": "\"6rxelpkTDeDHe+63yFXZk5T1TXQ3Ns4RCnAlVFtfUNg=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 09:25:36 GMT"
+          "Value": "Thu, 13 Mar 2025 10:27:47 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -447,7 +447,52 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-/0qzGNX8GvSeI5nQF+FPqHJ606mV2/w+3ubYCPS5ixM="
+          "Value": "sha256-6rxelpkTDeDHe+63yFXZk5T1TXQ3Ns4RCnAlVFtfUNg="
+        }
+      ]
+    },
+    {
+      "Route": "student-dashboard.9k89qpz8m7.html",
+      "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\student-dashboard.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "32979"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"mSGepijodIEm5gfVKchQuCs/TxW0jYkc6rLGzAxv8S8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 13 Mar 2025 11:01:35 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "9k89qpz8m7"
+        },
+        {
+          "Name": "label",
+          "Value": "student-dashboard.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-mSGepijodIEm5gfVKchQuCs/TxW0jYkc6rLGzAxv8S8="
         }
       ]
     },
@@ -462,7 +507,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "19196"
+          "Value": "32979"
         },
         {
           "Name": "Content-Type",
@@ -470,11 +515,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"8RJr7kO5K+/NbprOnbvRX8kuLdVAQVjqoIDzgE8worY=\""
+          "Value": "\"mSGepijodIEm5gfVKchQuCs/TxW0jYkc6rLGzAxv8S8=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 09:46:31 GMT"
+          "Value": "Thu, 13 Mar 2025 11:01:35 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -484,52 +529,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-8RJr7kO5K+/NbprOnbvRX8kuLdVAQVjqoIDzgE8worY="
-        }
-      ]
-    },
-    {
-      "Route": "student-dashboard.n66j396tv5.html",
-      "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\student-dashboard.html",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "19196"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/html"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"8RJr7kO5K+/NbprOnbvRX8kuLdVAQVjqoIDzgE8worY=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 09:46:31 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "n66j396tv5"
-        },
-        {
-          "Name": "label",
-          "Value": "student-dashboard.html"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-8RJr7kO5K+/NbprOnbvRX8kuLdVAQVjqoIDzgE8worY="
+          "Value": "sha256-mSGepijodIEm5gfVKchQuCs/TxW0jYkc6rLGzAxv8S8="
         }
       ]
     }

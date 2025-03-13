@@ -18,6 +18,10 @@ namespace StudentTracker.Models
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
         
+        [Required]
+        [StringLength(100)]
+        public string Fullname { get; set; } = string.Empty;
+        
         public DateTime CreatedAt { get; set; }
     }
 
@@ -35,6 +39,10 @@ namespace StudentTracker.Models
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+        
+        [Required]
+        [StringLength(100)]
+        public string Fullname { get; set; } = string.Empty;
         
         public DateTime CreatedAt { get; set; }
     }
@@ -56,5 +64,9 @@ namespace StudentTracker.Models
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+        
+        [Required]
+        [StringLength(100)]
+        public string Fullname { get; set; } = string.Empty;
     }
 } 
