@@ -74,6 +74,28 @@
             height: 420px; 
             border-radius: var(--border-radius);
             box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+            position: relative !important; /* Ensure proper positioning */
+            z-index: 10; /* Good z-index value */
+            display: block !important; /* Force display */
+            width: 100% !important; /* Force full width */
+            min-height: 300px !important; /* Minimum height */
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Add visibility to Leaflet-specific elements */
+        .leaflet-container {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .leaflet-control-container {
+            z-index: 15;
+        }
+        
+        /* Ensure leaflet controls are visible */
+        .leaflet-control-zoom {
+            z-index: 15 !important;
         }
         
         /* Button styling */
@@ -234,16 +256,30 @@
         }
         
         .marker-icon {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--primary-color);
-            font-size: 30px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border: 2px solid var(--primary-color);
+            overflow: hidden;
             transform-origin: bottom center;
             animation: bounce 1s ease infinite alternate;
+        }
+        
+        .student-marker-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .student-location-icon {
+            font-size: 18px;
+            color: var(--primary-color);
         }
         
         .marker-profile-pic {
@@ -430,7 +466,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="/images/default-profile.png" alt="Profile" class="profile-pic-sm me-2" id="nav-profile-pic">
+                            <i class="bi bi-gear-fill me-2 fs-5"></i>
                             <span id="nav-username">Student</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -475,19 +511,69 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3>Pending Connections</h3>
+                        <div class="alert alert-info small py-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Kapag ni-reject mo ang request, maaari pa ring mag-send ng bagong request ang magulang sa ibang araw.
+                            <span class="fw-bold d-block mt-1">Patakaran: </span>
+                            <ul class="mb-0 ps-3">
+                                <li>Pagkatapos ng 3 rejections, hindi na maaaring mag-request muli ang magulang.</li>
+                                <li>Sa bawat rejection, makikita mo kung ilang attempts na ang natitira.</li>
+                                <li>Maaaring tanggapin ang request kahit ilang beses nang na-reject dati.</li>
+                            </ul>
+                        </div>
                         <div id="pending-connections" class="list-group">
                             <!-- Pending connections will be loaded here -->
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card mb-4">
                     <div class="card-body">
                         <h3>Connected Parents</h3>
                         <div id="connected-parents" class="list-group">
                             <!-- Connected parents will be loaded here -->
                         </div>
                     </div>
+                </div>
+                
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0 fs-5">Rejected Requests</h3>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#rejectedConnectionsList" aria-expanded="false">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="collapse" id="rejectedConnectionsList">
+                        <div class="card-body">
+                            <div class="text-muted small mb-3">
+                                Ang mga magulang na ito ay nag-send ng connection request na ni-reject mo. Maaari silang mag-send muli ng bagong request sa ibang pagkakataon.
+                            </div>
+                            <div id="rejected-connections" class="list-group">
+                                <div class="text-center py-3 text-muted">
+                                    <i class="bi bi-hourglass me-2"></i>Loading...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for action confirmation -->
+    <div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="actionModalLabel">Kumpirmahin ang Aksyon</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="actionModalBody">
+                    <!-- Content will be filled dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kanselahin</button>
+                    <button type="button" class="btn btn-primary" id="actionConfirmBtn">Kumpirmahin</button>
                 </div>
             </div>
         </div>
@@ -497,31 +583,171 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
-        // Check authentication
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (!token || !user || user.userType !== 'Student') {
-            window.location.href = '/login.html';
-        }
-
-        // Display username
-        document.getElementById('username-display').textContent = user.fullname || user.username;
-
-        // Initialize map
-        const map = L.map('map').setView([0, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        // Global variables and error handling
+        let map;
         let currentMarker = null;
-
-        // Initialize SignalR
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl('/trackingHub', { accessTokenFactory: () => token })
-            .withAutomaticReconnect()
-            .build();
-
         let isTracking = false;
         let watchId = null;
+        let connection;
+        let token; // Global token variable
+        let user; // Global user variable
+
+        // Global error handling
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('Global error:', message, 'at', source, ':', lineno, ':', colno);
+            console.error('Error object:', error);
+            return false;
+        };
+
+        // Document ready function
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM ready, initializing dashboard...');
+            
+            // Check authentication
+            token = localStorage.getItem('token');
+            user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token || !user || user.userType !== 'Student') {
+                console.log('Authentication failed, redirecting to login');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                // Initialize UI elements
+                initializeUI(user);
+                
+                // Initialize map
+                initializeMap();
+                
+                // Initialize SignalR connection
+                initializeSignalR(token);
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+                console.log('Dashboard initialization complete');
+            } catch (error) {
+                console.error('Error during initialization:', error);
+            }
+        });
+
+        // Initialize UI elements
+        function initializeUI(user) {
+            // Set username in navbar
+            const navUsername = document.getElementById('nav-username');
+            if (navUsername) {
+                navUsername.textContent = user.fullname || user.username || 'Student';
+            }
+            
+            // No need to set profile picture in navbar anymore as we're using a settings icon
+        }
+
+        // Initialize map
+        function initializeMap() {
+            try {
+                const mapContainer = document.getElementById('map');
+                if (!mapContainer) {
+                    throw new Error('Map container not found');
+                }
+                
+                // Log map container dimensions for debugging
+                console.log('Map container dimensions before init:', 
+                    'Width:', mapContainer.clientWidth, 
+                    'Height:', mapContainer.clientHeight,
+                    'Offset Width:', mapContainer.offsetWidth,
+                    'Offset Height:', mapContainer.offsetHeight);
+                
+                // Force map container visibility
+                mapContainer.style.display = 'block';
+                mapContainer.style.height = '420px';
+                mapContainer.style.width = '100%';
+                
+                // Initialize Leaflet map
+                map = L.map('map').setView([0, 0], 2);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                // Log map dimensions after initialization
+                console.log('Map container dimensions after init:', 
+                    'Width:', mapContainer.clientWidth, 
+                    'Height:', mapContainer.clientHeight,
+                    'Offset Width:', mapContainer.offsetWidth,
+                    'Offset Height:', mapContainer.offsetHeight);
+                
+                // Trigger a resize event to ensure proper rendering
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                    map.invalidateSize();
+                    console.log('Map resized and invalidated');
+                    
+                    // Final check of map container dimensions
+                    console.log('Map container dimensions after resize:', 
+                        'Width:', mapContainer.clientWidth, 
+                        'Height:', mapContainer.clientHeight,
+                        'Offset Width:', mapContainer.offsetWidth,
+                        'Offset Height:', mapContainer.offsetHeight);
+                }, 500);
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        }
+
+        // Initialize SignalR connection
+        function initializeSignalR(token) {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl('/trackingHub', { accessTokenFactory: () => token })
+                .withAutomaticReconnect()
+                .build();
+                
+            connection.start()
+                .then(() => {
+                    console.log('Connected to SignalR Hub');
+                    loadConnections();
+                    checkActiveSession();
+                    
+                    // If was tracking before page refresh, resume tracking
+                    if (localStorage.getItem('isTracking') === 'true') {
+                        console.log('Resuming tracking after page refresh');
+                        startTracking();
+                    }
+                    
+                    // Force map resize after connection established
+                    if (map) {
+                        setTimeout(() => {
+                            map.invalidateSize();
+                        }, 1000);
+                    }
+                })
+                .catch(error => console.error('SignalR Connection Error:', error));
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Logout button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login.html';
+                });
+            }
+            
+            // Tracking button
+            const trackingBtn = document.getElementById('tracking-btn');
+            if (trackingBtn) {
+                trackingBtn.addEventListener('click', () => {
+                    if (!isTracking) {
+                        startTracking(true);
+                    } else {
+                        stopTracking(true);
+                    }
+                });
+            }
+        }
 
         // Check for active tracking session on page load
         async function checkActiveSession() {
@@ -552,18 +778,16 @@
             }
         }
 
-        // Start/Stop tracking
-        document.getElementById('tracking-btn').addEventListener('click', () => {
-            if (!isTracking) {
-                startTracking(true);
-            } else {
-                stopTracking(true);
-            }
-        });
-
         function startTracking(userInitiated = false) {
             if ('geolocation' in navigator) {
                 if (userInitiated) {
+                    // Show tracking in progress
+                    const trackingBtn = document.getElementById('tracking-btn');
+                    if (trackingBtn) {
+                        trackingBtn.disabled = true;
+                        trackingBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Starting...';
+                    }
+
                     // Create tracking session on server
                     fetch('/api/tracking/start', {
                         method: 'POST',
@@ -577,14 +801,33 @@
                             throw new Error('Failed to start tracking session');
                         }
                         console.log('Tracking session started on server');
+                        // Enable button again
+                        if (trackingBtn) {
+                            trackingBtn.disabled = false;
+                        }
+                        // Continue with tracking
+                        enableTracking();
                     })
                     .catch(error => {
                         console.error('Error starting tracking session:', error);
                         alert('Error starting tracking session. Please try again.');
+                        // Reset button
+                        if (trackingBtn) {
+                            trackingBtn.disabled = false;
+                            trackingBtn.innerHTML = '<i class="bi bi-broadcast me-2"></i> Start Tracking';
+                        }
                         return;
                     });
+                } else {
+                    // Just enable tracking without creating a new session
+                    enableTracking();
                 }
+            } else {
+                alert('Geolocation is not available in your browser.');
+            }
 
+            // Common function to enable actual tracking
+            function enableTracking() {
                 watchId = navigator.geolocation.watchPosition(
                     async (position) => {
                         const { latitude, longitude } = position.coords;
@@ -597,10 +840,13 @@
                         // Create custom icon for marker
                         const customIcon = L.divIcon({
                             className: 'custom-map-marker',
-                            html: `<div class="marker-icon"><img src="${user.profilePic || '/images/default-profile.png'}" class="marker-profile-pic" alt="Profile"></div>`,
-                            iconSize: [40, 40],
-                            iconAnchor: [20, 40],
-                            popupAnchor: [0, -40]
+                            html: `<div class="marker-icon">
+                                    <img src="${user.profilePic || '/images/default-profile.png'}" class="student-marker-img" alt="Student" 
+                                        onerror="this.src='/images/default-profile.png'; this.onerror=null;">
+                                  </div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 32],
+                            popupAnchor: [0, -32]
                         });
                         
                         // Create marker with custom icon and popup
@@ -623,7 +869,7 @@
                         map.setView([latitude, longitude], 15);
 
                         // Send location to server using SignalR
-                        if (connection.state === signalR.HubConnectionState.Connected) {
+                        if (connection && connection.state === signalR.HubConnectionState.Connected) {
                             try {
                                 console.log(`Sending location: ${latitude}, ${longitude}`);
                                 await connection.invoke('UpdateLocation', latitude, longitude);
@@ -632,10 +878,16 @@
                                 console.error('Error sending location:', error);
                             }
                         } else {
-                            console.warn('SignalR connection not established. Current state:', connection.state);
+                            console.warn('SignalR connection not established. Current state:', connection ? connection.state : 'undefined');
                         }
                     },
-                    (error) => console.error('Geolocation error:', error),
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                        if (error.code === 1) { // Permission denied
+                            alert('Location permission denied. Please enable location services to use tracking features.');
+                            stopTracking(true);
+                        }
+                    },
                     { enableHighAccuracy: true, maximumAge: 10000 }
                 );
 
@@ -643,16 +895,18 @@
                 const trackingBtn = document.getElementById('tracking-btn');
                 const trackingStatus = document.getElementById('tracking-status');
                 
-                trackingBtn.innerHTML = '<i class="bi bi-broadcast-pin me-2"></i> Stop Tracking';
-                trackingBtn.classList.replace('btn-primary', 'btn-danger');
-                trackingBtn.classList.add('active');
+                if (trackingBtn) {
+                    trackingBtn.innerHTML = '<i class="bi bi-broadcast-pin me-2"></i> Stop Tracking';
+                    trackingBtn.classList.replace('btn-primary', 'btn-danger');
+                    trackingBtn.classList.add('active');
+                }
                 
-                trackingStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> Location tracking is active and sharing with connected parents';
+                if (trackingStatus) {
+                    trackingStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> Location tracking is active and sharing with connected parents';
+                }
                 
                 // Save tracking state to localStorage
                 localStorage.setItem('isTracking', 'true');
-            } else {
-                alert('Geolocation is not available in your browser.');
             }
         }
 
@@ -661,13 +915,20 @@
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
             }
-            if (currentMarker) {
+            if (currentMarker && map) {
                 map.removeLayer(currentMarker);
                 currentMarker = null;
             }
             
-            if (userInitiated && connection.state === signalR.HubConnectionState.Connected) {
+            if (userInitiated && connection && connection.state === signalR.HubConnectionState.Connected) {
                 try {
+                    // Show stopping in progress
+                    const trackingBtn = document.getElementById('tracking-btn');
+                    if (trackingBtn) {
+                        trackingBtn.disabled = true;
+                        trackingBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Stopping...';
+                    }
+
                     // Only stop tracking on server if user explicitly clicked the button
                     connection.invoke('StopTracking');
                     console.log('Stopped tracking successfully');
@@ -685,27 +946,55 @@
                             throw new Error('Failed to stop tracking session');
                         }
                         console.log('Tracking session stopped on server');
+                        
+                        // Enable button again
+                        if (trackingBtn) {
+                            trackingBtn.disabled = false;
+                        }
+                        
+                        // Update UI
+                        completeStopTracking();
                     })
                     .catch(error => {
-                        console.error('Error stopping tracking session:', error);
+                        console.error('Error stopping tracking:', error);
+                        
+                        // Enable button again anyway
+                        if (trackingBtn) {
+                            trackingBtn.disabled = false;
+                        }
+                        
+                        // Update UI even if there was an error
+                        completeStopTracking();
                     });
                 } catch (error) {
                     console.error('Error stopping tracking:', error);
+                    
+                    // Update UI even if there was an error
+                    completeStopTracking();
                 }
+            } else {
+                // Just update UI
+                completeStopTracking();
             }
             
-            isTracking = false;
-            const trackingBtn = document.getElementById('tracking-btn');
-            const trackingStatus = document.getElementById('tracking-status');
-            
-            trackingBtn.innerHTML = '<i class="bi bi-broadcast me-2"></i> Start Tracking';
-            trackingBtn.classList.replace('btn-danger', 'btn-primary');
-            trackingBtn.classList.remove('active');
-            
-            trackingStatus.innerHTML = '<i class="bi bi-info-circle me-1"></i> Click to start sharing your location with connected parents';
-            
-            // Remove tracking state from localStorage
-            localStorage.removeItem('isTracking');
+            function completeStopTracking() {
+                isTracking = false;
+                const trackingBtn = document.getElementById('tracking-btn');
+                const trackingStatus = document.getElementById('tracking-status');
+                
+                if (trackingBtn) {
+                    trackingBtn.innerHTML = '<i class="bi bi-broadcast me-2"></i> Start Tracking';
+                    trackingBtn.classList.replace('btn-danger', 'btn-primary');
+                    trackingBtn.classList.remove('active');
+                }
+                
+                if (trackingStatus) {
+                    trackingStatus.innerHTML = '<i class="bi bi-info-circle me-1"></i> Click to start sharing your location with connected parents';
+                }
+                
+                // Remove tracking state from localStorage
+                localStorage.removeItem('isTracking');
+            }
         }
 
         // Add window unload event to save state but NOT stop tracking
@@ -717,195 +1006,468 @@
             // Note: we don't call StopTracking() here to keep the tracking active
         });
 
-        // Global error handling
-        window.onerror = function(message, source, lineno, colno, error) {
-            console.error('Global error:', message, 'at', source, ':', lineno, ':', colno);
-            console.error('Error object:', error);
-            return false;
-        };
-
-        // Initialize
-        connection.start()
-            .then(() => {
-                console.log('Connected to SignalR Hub');
-                loadConnections();
-                
-                // Check for active tracking session
-                checkActiveSession();
-                
-                // If was tracking before page refresh, resume tracking
-                if (localStorage.getItem('isTracking') === 'true') {
-                    console.log('Resuming tracking after page refresh');
-                    startTracking();
-                }
-            })
-            .catch(error => console.error('SignalR Connection Error:', error));
-
         // Load connections
         async function loadConnections() {
             try {
+                if (!token) {
+                    console.error('No authentication token available');
+                    document.getElementById('pending-connections').innerHTML = 
+                        '<div class="list-group-item text-danger">Authentication error. Please try refreshing the page.</div>';
+                    document.getElementById('connected-parents').innerHTML = 
+                        '<div class="list-group-item text-danger">Authentication error. Please try refreshing the page.</div>';
+                    document.getElementById('rejected-connections').innerHTML = 
+                        '<div class="list-group-item text-danger">Authentication error. Please try refreshing the page.</div>';
+                    return;
+                }
+
                 // Display loading indicators
                 document.getElementById('pending-connections').innerHTML = '<div class="list-group-item">Loading...</div>';
                 document.getElementById('connected-parents').innerHTML = '<div class="list-group-item">Loading...</div>';
+                document.getElementById('rejected-connections').innerHTML = 
+                    '<div class="text-center py-3 text-muted"><i class="bi bi-hourglass me-2"></i>Loading...</div>';
                 
-                // Load pending connections
-                const pendingResponse = await fetch('/api/connection/pending', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!pendingResponse.ok) {
-                    const errorText = await pendingResponse.text();
-                    console.error('Error fetching pending connections:', errorText);
-                    document.getElementById('pending-connections').innerHTML = 
-                        `<div class="list-group-item text-danger">Error: ${errorText}</div>`;
-                    return;
+                // Get rejected connections first to count rejections per parent
+                const parentRejectionCounts = {};
+                try {
+                    const rejectedResponse = await fetch('/api/connection/rejected', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (rejectedResponse.ok) {
+                        const rejectedData = await rejectedResponse.json();
+                        
+                        // Count rejections by parent
+                        rejectedData.forEach(conn => {
+                            if (conn.parent && conn.parent.parentId) {
+                                const parentId = conn.parent.parentId;
+                                if (!parentRejectionCounts[parentId]) {
+                                    parentRejectionCounts[parentId] = {
+                                        count: 0,
+                                        parent: conn.parent
+                                    };
+                                }
+                                parentRejectionCounts[parentId].count++;
+                            }
+                        });
+                        
+                        console.log('Parent rejection counts:', parentRejectionCounts);
+                    }
+                } catch (err) {
+                    console.error('Error getting rejection counts:', err);
                 }
                 
-                const pendingData = await pendingResponse.json();
-                console.log('Pending connections raw data:', JSON.stringify(pendingData, null, 2));
-                
-                if (pendingData.length === 0) {
-                    document.getElementById('pending-connections').innerHTML = 
-                        '<div class="list-group-item">No pending connections</div>';
-                } else {
-                    const pendingHtml = pendingData.map((conn, index) => {
-                        console.log(`Connection ${index}:`, conn);
-                        const parentName = conn.parent && (conn.parent.fullname || conn.parent.username) ? 
-                            (conn.parent.fullname || conn.parent.username) : 'Unknown Parent';
-                        const parentEmail = conn.parent && conn.parent.email ? conn.parent.email : 'No email provided';
-                        const requestDate = new Date(conn.createdAt).toLocaleString();
+                // Load pending connections
+                try {
+                    const pendingResponse = await fetch('/api/connection/pending', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (!pendingResponse.ok) {
+                        const errorText = await pendingResponse.text();
+                        console.error('Error fetching pending connections:', errorText);
+                        document.getElementById('pending-connections').innerHTML = 
+                            `<div class="list-group-item text-danger">Error: ${errorText}</div>`;
+                    } else {
+                        const pendingData = await pendingResponse.json();
+                        console.log('Pending connections raw data:', JSON.stringify(pendingData, null, 2));
                         
-                        return `
-                        <div class="connection-item">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h5 class="mb-1">${parentName}</h5>
-                                    <p class="mb-1 small text-muted">${parentEmail}</p>
+                        if (pendingData.length === 0) {
+                            document.getElementById('pending-connections').innerHTML = 
+                                '<div class="list-group-item">No pending connections</div>';
+                        } else {
+                            const pendingHtml = pendingData.map((conn, index) => {
+                                console.log(`Connection ${index}:`, conn);
+                                const parentName = conn.parent && (conn.parent.fullname || conn.parent.username) ? 
+                                    (conn.parent.fullname || conn.parent.username) : 'Unknown Parent';
+                                const parentEmail = conn.parent && conn.parent.email ? conn.parent.email : 'No email provided';
+                                const requestDate = new Date(conn.createdAt).toLocaleString();
+                                
+                                // Check rejection count
+                                let rejectionInfo = '';
+                                if (conn.parent && conn.parent.parentId && parentRejectionCounts[conn.parent.parentId]) {
+                                    const rejections = parentRejectionCounts[conn.parent.parentId].count;
+                                    if (rejections > 0) {
+                                        rejectionInfo = `
+                                        <div class="small text-warning mb-2">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                            Nare-reject na ${rejections} beses (max: 3)
+                                        </div>`;
+                                    }
+                                }
+                                
+                                return `
+                                <div class="connection-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h5 class="mb-1">${parentName}</h5>
+                                            <p class="mb-1 small text-muted">${parentEmail}</p>
+                                        </div>
+                                        <span class="badge bg-warning">Pending</span>
+                                    </div>
+                                    <p class="small mb-2 text-muted">Request received: ${requestDate}</p>
+                                    ${rejectionInfo}
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <button class="btn btn-danger btn-sm me-2" 
+                                            onclick="handleConnection(${conn.connectionId}, false)">
+                                            <i class="bi bi-x-circle"></i> Reject
+                                        </button>
+                                        <button class="btn btn-success btn-sm" 
+                                            onclick="handleConnection(${conn.connectionId}, true)">
+                                            <i class="bi bi-check-circle"></i> Accept
+                                        </button>
+                                    </div>
                                 </div>
-                                <span class="badge bg-warning">Pending</span>
-                            </div>
-                            <p class="small mb-2 text-muted">Request received: ${requestDate}</p>
-                            <div class="d-flex justify-content-end mt-3">
-                                <button class="btn btn-danger btn-sm me-2" 
-                                    onclick="handleConnection(${conn.connectionId}, false)">
-                                    <i class="bi bi-x-circle"></i> Reject
-                                </button>
-                                <button class="btn btn-success btn-sm" 
-                                    onclick="handleConnection(${conn.connectionId}, true)">
-                                    <i class="bi bi-check-circle"></i> Accept
-                                </button>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-                    document.getElementById('pending-connections').innerHTML = pendingHtml;
+                                `;
+                            }).join('');
+                            document.getElementById('pending-connections').innerHTML = pendingHtml;
+                        }
+                    }
+                } catch (pendingError) {
+                    console.error('Error loading pending connections:', pendingError);
+                    document.getElementById('pending-connections').innerHTML = 
+                        `<div class="list-group-item text-danger">Error loading pending connections: ${pendingError.message}</div>`;
                 }
 
                 // Load connected parents
-                const connectedResponse = await fetch('/api/connection/connected', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!connectedResponse.ok) {
-                    const errorText = await connectedResponse.text();
-                    console.error('Error fetching connected parents:', errorText);
-                    document.getElementById('connected-parents').innerHTML = 
-                        `<div class="list-group-item text-danger">Error: ${errorText}</div>`;
-                    return;
-                }
-                
-                const connectedData = await connectedResponse.json();
-                console.log('Connected parents raw data:', JSON.stringify(connectedData, null, 2));
-                
-                if (connectedData.length === 0) {
-                    document.getElementById('connected-parents').innerHTML = 
-                        '<div class="list-group-item">No connected parents</div>';
-                } else {
-                    const connectedHtml = connectedData.map((parent, index) => {
-                        console.log(`Parent ${index}:`, parent);
-                        return `
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <div class="avatar-circle bg-primary text-white">
-                                            ${(parent.fullname || parent.username || '?').charAt(0).toUpperCase()}
+                try {
+                    const connectedResponse = await fetch('/api/connection/connected', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (!connectedResponse.ok) {
+                        const errorText = await connectedResponse.text();
+                        console.error('Error fetching connected parents:', errorText);
+                        document.getElementById('connected-parents').innerHTML = 
+                            `<div class="list-group-item text-danger">Error: ${errorText}</div>`;
+                    } else {
+                        const connectedData = await connectedResponse.json();
+                        console.log('Connected parents raw data:', JSON.stringify(connectedData, null, 2));
+                        
+                        if (connectedData.length === 0) {
+                            document.getElementById('connected-parents').innerHTML = 
+                                '<div class="list-group-item">No connected parents</div>';
+                        } else {
+                            const connectedHtml = connectedData.map((parent, index) => {
+                                console.log(`Parent ${index}:`, parent);
+                                return `
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <div class="avatar-circle bg-primary text-white">
+                                                    ${(parent.fullname || parent.username || '?').charAt(0).toUpperCase()}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <strong>${parent.fullname || parent.username || 'Unknown'}</strong>
+                                                <div class="small text-muted">${parent.email || 'No email'}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <strong>${parent.fullname || parent.username || 'Unknown'}</strong>
-                                        <div class="small text-muted">${parent.email || 'No email'}</div>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Connected
+                                        </span>
                                     </div>
                                 </div>
-                                <span class="badge bg-success">
-                                    <i class="bi bi-check-circle-fill me-1"></i>Connected
-                                </span>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-                    document.getElementById('connected-parents').innerHTML = connectedHtml;
+                                `;
+                            }).join('');
+                            document.getElementById('connected-parents').innerHTML = connectedHtml;
+                        }
+                    }
+                } catch (connectedError) {
+                    console.error('Error loading connected parents:', connectedError);
+                    document.getElementById('connected-parents').innerHTML = 
+                        `<div class="list-group-item text-danger">Error loading connected parents: ${connectedError.message}</div>`;
+                }
+                
+                // Load rejected connections - attempt to fetch from API if endpoint exists
+                try {
+                    const rejectedResponse = await fetch('/api/connection/rejected', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    // If the endpoint doesn't exist or returns an error, handle gracefully
+                    if (!rejectedResponse.ok) {
+                        if (rejectedResponse.status === 404) {
+                            // Endpoint doesn't exist, show a message about this being a new feature
+                            document.getElementById('rejected-connections').innerHTML = 
+                                `<div class="list-group-item text-muted">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Ang history ng mga ni-reject na requests ay hindi pa available sa current version.
+                                </div>`;
+                        } else {
+                            const errorText = await rejectedResponse.text();
+                            console.error('Error fetching rejected connections:', errorText);
+                            document.getElementById('rejected-connections').innerHTML = 
+                                `<div class="list-group-item text-danger">Error: ${errorText}</div>`;
+                        }
+                    } else {
+                        const rejectedData = await rejectedResponse.json();
+                        console.log('Rejected connections raw data:', JSON.stringify(rejectedData, null, 2));
+                        
+                        if (rejectedData.length === 0) {
+                            document.getElementById('rejected-connections').innerHTML = 
+                                '<div class="list-group-item text-muted">Wala kang ni-reject na connection requests.</div>';
+                        } else {
+                            // Group by parent and count rejections
+                            const parentRejections = {};
+                            rejectedData.forEach(conn => {
+                                const parentId = conn.parent?.parentId;
+                                if (parentId) {
+                                    if (!parentRejections[parentId]) {
+                                        parentRejections[parentId] = {
+                                            parent: conn.parent,
+                                            count: 0,
+                                            lastRejected: conn.updatedAt || conn.createdAt
+                                        };
+                                    }
+                                    parentRejections[parentId].count++;
+                                    
+                                    // Update last rejected date if this is more recent
+                                    const currentDate = new Date(conn.updatedAt || conn.createdAt);
+                                    const existingDate = new Date(parentRejections[parentId].lastRejected);
+                                    if (currentDate > existingDate) {
+                                        parentRejections[parentId].lastRejected = conn.updatedAt || conn.createdAt;
+                                    }
+                                }
+                            });
+                            
+                            const rejectedHtml = Object.values(parentRejections).map(entry => {
+                                const parent = entry.parent;
+                                const parentName = parent && (parent.fullname || parent.username) ? 
+                                    (parent.fullname || parent.username) : 'Unknown Parent';
+                                const parentEmail = parent && parent.email ? parent.email : 'No email provided';
+                                const rejectedDate = new Date(entry.lastRejected).toLocaleString();
+                                const maxReached = entry.count >= 3;
+                                
+                                return `
+                                <div class="list-group-item ${maxReached ? 'border-danger' : ''}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-2">
+                                                    <div class="avatar-circle ${maxReached ? 'bg-danger' : 'bg-secondary'} text-white">
+                                                        ${parentName.charAt(0).toUpperCase()}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div>${parentName}</div>
+                                                    <div class="small text-muted">${parentEmail}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end small">
+                                            <div class="text-muted">Last Rejected: ${rejectedDate}</div>
+                                            <div class="badge ${maxReached ? 'bg-danger' : 'bg-secondary'}">
+                                                <i class="bi ${maxReached ? 'bi-x-circle' : 'bi-info-circle'} me-1"></i>
+                                                ${entry.count} / 3 rejections
+                                            </div>
+                                            <div class="small mt-1 ${maxReached ? 'text-danger' : 'text-muted'}">
+                                                ${maxReached ? 
+                                                    '<i class="bi bi-lock-fill me-1"></i>Hindi na maaaring mag-request muli' : 
+                                                    '<i class="bi bi-arrow-repeat me-1"></i>Maaaring mag-request ulit'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('');
+                            document.getElementById('rejected-connections').innerHTML = rejectedHtml;
+                        }
+                    }
+                } catch (rejectedError) {
+                    console.error('Error loading rejected connections:', rejectedError);
+                    document.getElementById('rejected-connections').innerHTML = 
+                        `<div class="list-group-item text-muted">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Hindi ma-access ang rejected connections history sa ngayon.
+                        </div>`;
                 }
             } catch (error) {
-                console.error('Error loading connections:', error);
+                console.error('General error loading connections:', error);
                 document.getElementById('pending-connections').innerHTML = 
-                    `<div class="list-group-item text-danger">Error loading pending connections: ${error.message}</div>`;
+                    `<div class="list-group-item text-danger">Error loading connections: ${error.message}</div>`;
                 document.getElementById('connected-parents').innerHTML = 
-                    `<div class="list-group-item text-danger">Error loading connected parents: ${error.message}</div>`;
+                    `<div class="list-group-item text-danger">Error loading connections: ${error.message}</div>`;
+                document.getElementById('rejected-connections').innerHTML = 
+                    `<div class="list-group-item text-danger">Error loading connections: ${error.message}</div>`;
             }
         }
-
-        // Add this function for global error handling
-        window.onerror = function(message, source, lineno, colno, error) {
-            console.error('Global error:', message, 'at', source, ':', lineno, ':', colno);
-            console.error('Error object:', error);
-            return false;
-        };
 
         // Define handleConnection as a global function
         window.handleConnection = async function(connectionId, accept) {
             try {
-                console.log(`Handling connection: ID=${connectionId}, Accept=${accept}`);
-                const endpoint = accept ? 'accept' : 'reject';
-                console.log(`Endpoint: /api/connection/${connectionId}/${endpoint}`);
+                if (!token) {
+                    console.error('No authentication token available');
+                    alert('Authentication error. Please refresh the page and try again.');
+                    return;
+                }
                 
-                const response = await fetch(`/api/connection/${connectionId}/${endpoint}`, {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                // Get the parent name if available from the button's parent element
+                const connectionItem = event.target.closest('.connection-item');
+                let parentName = 'ang magulang';
+                if (connectionItem) {
+                    const nameElement = connectionItem.querySelector('h5');
+                    if (nameElement && nameElement.textContent) {
+                        parentName = nameElement.textContent.trim();
                     }
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (response.ok) {
-                    console.log('Connection updated successfully');
-                    loadConnections();
+                }
+
+                // For reject action, show confirmation modal
+                if (!accept) {
+                    const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+                    const actionModalBody = document.getElementById('actionModalBody');
+                    const actionConfirmBtn = document.getElementById('actionConfirmBtn');
+                    
+                    actionModalBody.innerHTML = `
+                        <div class="text-center mb-3">
+                            <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+                        </div>
+                        <p>Sigurado ka bang gusto mong i-reject ang connection request ni <strong>${parentName}</strong>?</p>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Note:</strong> Kapag ni-reject mo ang request, maaaring mag-send muli ang magulang ng 
+                            bagong request sa ibang araw. Maaari ka ring mag-accept ng ibang magulang nang walang limitasyon.
+                        </div>
+                    `;
+                    
+                    // Update confirm button
+                    actionConfirmBtn.textContent = 'I-reject';
+                    actionConfirmBtn.className = 'btn btn-danger';
+                    
+                    // Set up the confirm action
+                    const handleConfirm = async function() {
+                        actionConfirmBtn.disabled = true;
+                        actionConfirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+                        
+                        // Remove the event listener to prevent multiple calls
+                        actionConfirmBtn.removeEventListener('click', handleConfirm);
+                        
+                        // Close the modal
+                        actionModal.hide();
+                        
+                        // Process the rejection
+                        await processConnection(connectionId, false);
+                    };
+                    
+                    // Add event listener for confirmation
+                    actionConfirmBtn.addEventListener('click', handleConfirm);
+                    
+                    // Show the modal
+                    actionModal.show();
+                    
+                    // Clean up when modal is hidden
+                    document.getElementById('actionModal').addEventListener('hidden.bs.modal', function () {
+                        actionConfirmBtn.removeEventListener('click', handleConfirm);
+                    }, { once: true });
+                    
+                    return;
                 } else {
-                    const errorText = await response.text();
-                    console.error('Error handling connection:', errorText);
-                    alert('Failed to update connection status: ' + errorText);
+                    // For accept action, process directly
+                    await processConnection(connectionId, true);
+                }
+                
+                // Function to process the connection request
+                async function processConnection(connectionId, accept) {
+                    console.log(`Processing connection: ID=${connectionId}, Accept=${accept}`);
+                    const endpoint = accept ? 'accept' : 'reject';
+                    
+                    // Show loading in original button if it exists
+                    const btn = event.target.closest('button');
+                    let originalHTML = '';
+                    if (btn) {
+                        originalHTML = btn.innerHTML; // Save original HTML
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                    }
+                    
+                    // Process the request
+                    try {
+                        const response = await fetch(`/api/connection/${connectionId}/${endpoint}`, {
+                            method: 'POST',
+                            headers: { 
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        console.log('Response status:', response.status);
+                        
+                        if (response.ok) {
+                            console.log('Connection updated successfully');
+                            
+                            // Parse the response
+                            let responseData;
+                            try {
+                                responseData = await response.json();
+                            } catch (e) {
+                                console.error('Error parsing JSON response:', e);
+                                responseData = { message: 'Connection ' + (accept ? 'accepted' : 'rejected') };
+                            }
+                            
+                            // Show different messages depending on accept/reject
+                            if (accept) {
+                                alert(`Connection request kay ${parentName} ay tinanggap. Maaari na nilang makita ang iyong lokasyon kapag naka-active ang tracking.`);
+                            } else {
+                                // Show rejection message with rejection count if available
+                                let rejectMsg = `Connection request kay ${parentName} ay tinanggihan.`;
+                                
+                                if (responseData.rejectionCount) {
+                                    rejectMsg += ` Ito ay ang ika-${responseData.rejectionCount} rejection para sa magulang na ito.`;
+                                    
+                                    if (responseData.maxRejectionsReached) {
+                                        rejectMsg += ` Hindi na sila maaaring mag-send ng bagong request.`;
+                                    } else {
+                                        const remainingAttempts = 3 - responseData.rejectionCount;
+                                        rejectMsg += ` Maaari pa silang mag-send ng ${remainingAttempts} pang ${remainingAttempts > 1 ? 'requests' : 'request'}.`;
+                                    }
+                                } else {
+                                    rejectMsg += ` Maaari silang mag-send muli ng request sa ibang pagkakataon.`;
+                                }
+                                
+                                alert(rejectMsg);
+                            }
+                            
+                            // Reload connections to update the UI
+                            loadConnections();
+                        } else {
+                            let errorText;
+                            try {
+                                const errorData = await response.json();
+                                errorText = errorData.message || 'Unknown error';
+                            } catch (e) {
+                                errorText = await response.text();
+                            }
+                            
+                            console.error('Error handling connection:', errorText);
+                            alert('Failed to update connection status: ' + errorText);
+                            
+                            // Reset button if it exists
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.innerHTML = originalHTML;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error processing connection:', error);
+                        alert('An error occurred while updating the connection: ' + error.message);
+                        
+                        // Reset button if it exists
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHTML;
+                        }
+                    }
                 }
             } catch (error) {
-                console.error('Error handling connection:', error);
-                alert('An error occurred while updating the connection: ' + error.message);
+                console.error('Error in handleConnection:', error);
+                alert('An error occurred while processing your request: ' + error.message);
             }
         };
 
-        // Logout
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login.html';
-        });
-        
         // Profile Picture Handling
         console.log('DEBUG: Starting profile pic setup script');
 
-        // Get the DOM elements we need
-        const navProfilePic = document.querySelector('.profile-pic-sm') || document.querySelector('#nav-profile-pic');
+        // Get the DOM elements we need - removing references to nav profile pic
         const profilePicModal = document.getElementById('profilePicModal');
         const profilePicInput = document.getElementById('profile-pic-input');
         const currentProfilePic = document.getElementById('current-profile-pic');
@@ -916,8 +1478,7 @@
         const dropZone = document.getElementById('current-profile-container');
         const dropOverlay = document.getElementById('drop-overlay');
 
-        // Debug check
-        console.log('DEBUG: Nav Profile Pic:', navProfilePic ? 'Found' : 'Not found');
+        // Debug check - removing references to nav profile pic
         console.log('DEBUG: Modal:', profilePicModal ? 'Found' : 'Not found');
         console.log('DEBUG: Profile Pic Input:', profilePicInput ? 'Found' : 'Not found');
         console.log('DEBUG: Current Profile Pic:', currentProfilePic ? 'Found' : 'Not found');
@@ -928,29 +1489,12 @@
         console.log('DEBUG: Drop Zone:', dropZone ? 'Found' : 'Not found');
         console.log('DEBUG: Drop Overlay:', dropOverlay ? 'Found' : 'Not found');
 
-        // Display username in navbar
-        const navUsername = document.getElementById('nav-username');
-        navUsername.textContent = user.fullname || user.username;
-        
-        // Monitor any form submission attempts
-        document.addEventListener('submit', function(e) {
-            console.log("DEBUG: Form submission detected for", e.target.id || "unknown form");
-            // Prevent any form submissions in the modal
-            if (e.target.closest('#profilePicModal')) {
-                console.log("DEBUG: Form submission inside profile pic modal caught");
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
-        
         // Load profile pic on page load
         if (user.profilePic) {
             console.log("DEBUG: User has profile pic");
-            navProfilePic.src = user.profilePic;
             currentProfilePic.src = user.profilePic;
         } else {
             console.log("DEBUG: User has no profile pic, using default");
-            navProfilePic.src = '/images/default-profile.png';
             currentProfilePic.src = '/images/default-profile.png';
             
             // Try to get profile pic from server if none in localStorage
@@ -996,7 +1540,6 @@
                         console.log('DEBUG: Setting profile pic from JSON response URL');
                         
                         // Update all profile picture elements
-                        if (navProfilePic) navProfilePic.src = result.data.profilePicUrl;
                         if (currentProfilePic) currentProfilePic.src = result.data.profilePicUrl;
                         
                         // Update local storage
@@ -1009,7 +1552,6 @@
                         const url = URL.createObjectURL(result.data);
                         
                         // Update all profile picture elements
-                        if (navProfilePic) navProfilePic.src = url;
                         if (currentProfilePic) currentProfilePic.src = url;
                     }
                 })
@@ -1266,7 +1808,6 @@
                             }
                             
                             // Update UI images
-                            if (navProfilePic) navProfilePic.src = result.profilePicUrl;
                             if (currentProfilePic) currentProfilePic.src = result.profilePicUrl;
                         }
                     } catch (e) {
@@ -1343,13 +1884,19 @@
                 });
             });
             
-            // Add this attribute to any profile picture-related elements
-            const profilePic = document.querySelector('.profile-pic-sm');
-            if (profilePic) {
-                profilePic.setAttribute('data-action', 'open-profile-editor');
-                profilePic.style.cursor = 'pointer';
-            }
+            // No need to add actions to profile pic in navbar since it's now a settings icon
         });
+
+        // Monitor any form submission attempts
+        document.addEventListener('submit', function(e) {
+            console.log("DEBUG: Form submission detected for", e.target.id || "unknown form");
+            // Prevent any form submissions in the modal
+            if (e.target.closest('#profilePicModal')) {
+                console.log("DEBUG: Form submission inside profile pic modal caught");
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
     </script>
 </body>
 </html> 

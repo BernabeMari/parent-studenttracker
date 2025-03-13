@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "BB+vZFDc4hvmFHg/GQ7vYfOp8fcsQ0NANNua+2OI1Ug=",
+  "Hash": "F8B8d/48FuMG6BjeqMAo/uz7eaHAPvO88jL+7yNF2E4=",
   "Source": "StudentTracker",
   "BasePath": "_content/StudentTracker",
   "Mode": "Default",
@@ -94,8 +94,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "xlwbvnymjb",
-      "Integrity": "K6tPYhYXiCXuPla/ez2i734deLrs5TMx8grtWYO8RIo=",
+      "Fingerprint": "aejm981nvr",
+      "Integrity": "sqR97Sgg3Z5hv+GxATaq/2yas9v2J57yBaE7QCxIOc0=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\parent-dashboard.html"
@@ -136,8 +136,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "gmna97k0y2",
-      "Integrity": "6ASQa351egStlgSq0f3nM1m4rZoTBtUxOcFrrChoOhA=",
+      "Fingerprint": "dy00q3648a",
+      "Integrity": "1aqNjtGG1sUVUM3G701OZBAx/M2IQUgyhuzFpjs62Q0=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\student-dashboard.html"
@@ -412,6 +412,51 @@
       ]
     },
     {
+      "Route": "parent-dashboard.aejm981nvr.html",
+      "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\parent-dashboard.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "32996"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"sqR97Sgg3Z5hv+GxATaq/2yas9v2J57yBaE7QCxIOc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 13 Mar 2025 13:30:53 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "aejm981nvr"
+        },
+        {
+          "Name": "label",
+          "Value": "parent-dashboard.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-sqR97Sgg3Z5hv+GxATaq/2yas9v2J57yBaE7QCxIOc0="
+        }
+      ]
+    },
+    {
       "Route": "parent-dashboard.html",
       "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\parent-dashboard.html",
       "Selectors": [],
@@ -422,7 +467,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "30043"
+          "Value": "32996"
         },
         {
           "Name": "Content-Type",
@@ -430,11 +475,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"K6tPYhYXiCXuPla/ez2i734deLrs5TMx8grtWYO8RIo=\""
+          "Value": "\"sqR97Sgg3Z5hv+GxATaq/2yas9v2J57yBaE7QCxIOc0=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 11:20:21 GMT"
+          "Value": "Thu, 13 Mar 2025 13:30:53 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -444,52 +489,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-K6tPYhYXiCXuPla/ez2i734deLrs5TMx8grtWYO8RIo="
-        }
-      ]
-    },
-    {
-      "Route": "parent-dashboard.xlwbvnymjb.html",
-      "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\parent-dashboard.html",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "30043"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/html"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"K6tPYhYXiCXuPla/ez2i734deLrs5TMx8grtWYO8RIo=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 11:20:21 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "xlwbvnymjb"
-        },
-        {
-          "Name": "label",
-          "Value": "parent-dashboard.html"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-K6tPYhYXiCXuPla/ez2i734deLrs5TMx8grtWYO8RIo="
+          "Value": "sha256-sqR97Sgg3Z5hv+GxATaq/2yas9v2J57yBaE7QCxIOc0="
         }
       ]
     },
@@ -576,7 +576,7 @@
       ]
     },
     {
-      "Route": "student-dashboard.gmna97k0y2.html",
+      "Route": "student-dashboard.dy00q3648a.html",
       "AssetFile": "C:\\VSCodes\\studenttrackingC#\\wwwroot\\student-dashboard.html",
       "Selectors": [],
       "ResponseHeaders": [
@@ -586,7 +586,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "57743"
+          "Value": "88353"
         },
         {
           "Name": "Content-Type",
@@ -594,11 +594,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"6ASQa351egStlgSq0f3nM1m4rZoTBtUxOcFrrChoOhA=\""
+          "Value": "\"1aqNjtGG1sUVUM3G701OZBAx/M2IQUgyhuzFpjs62Q0=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 12:59:27 GMT"
+          "Value": "Thu, 13 Mar 2025 13:31:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -608,7 +608,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "gmna97k0y2"
+          "Value": "dy00q3648a"
         },
         {
           "Name": "label",
@@ -616,7 +616,7 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-6ASQa351egStlgSq0f3nM1m4rZoTBtUxOcFrrChoOhA="
+          "Value": "sha256-1aqNjtGG1sUVUM3G701OZBAx/M2IQUgyhuzFpjs62Q0="
         }
       ]
     },
@@ -631,7 +631,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "57743"
+          "Value": "88353"
         },
         {
           "Name": "Content-Type",
@@ -639,11 +639,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"6ASQa351egStlgSq0f3nM1m4rZoTBtUxOcFrrChoOhA=\""
+          "Value": "\"1aqNjtGG1sUVUM3G701OZBAx/M2IQUgyhuzFpjs62Q0=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 13 Mar 2025 12:59:27 GMT"
+          "Value": "Thu, 13 Mar 2025 13:31:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -653,7 +653,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-6ASQa351egStlgSq0f3nM1m4rZoTBtUxOcFrrChoOhA="
+          "Value": "sha256-1aqNjtGG1sUVUM3G701OZBAx/M2IQUgyhuzFpjs62Q0="
         }
       ]
     },

@@ -17,6 +17,7 @@ namespace StudentTracker.Models
         
         public string Status { get; set; } = "Pending";
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         [ForeignKey("StudentId")]
         public virtual Student? Student { get; set; }
